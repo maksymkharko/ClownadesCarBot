@@ -14,6 +14,12 @@
             --tg-theme-button-color: #5eabe1;
             --tg-theme-button-text-color: #ffffff;
             --tg-theme-secondary-bg-color: #131415;
+            --tg-theme-section-bg-color: #1e2733;
+            --tg-border-radius: 12px;
+        }
+        
+        * {
+            box-sizing: border-box;
         }
         
         body {
@@ -22,26 +28,43 @@
             color: var(--tg-theme-text-color);
             margin: 0;
             padding: 0;
-            line-height: 1.4;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
-        .container {
-            max-width: 100%;
-            padding: 12px;
+        .header {
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            background-color: var(--tg-theme-bg-color);
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        h1, h2 {
-            margin: 0 0 12px 0;
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px;
         }
         
         .car-card {
-            background-color: var(--tg-theme-secondary-bg-color);
-            border-radius: 12px;
+            background-color: var(--tg-theme-section-bg-color);
+            border-radius: var(--tg-border-radius);
             padding: 16px;
             margin-bottom: 12px;
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .car-card:active {
@@ -59,55 +82,98 @@
         .car-name {
             font-weight: 600;
             font-size: 18px;
+            color: var(--tg-theme-text-color);
+        }
+        
+        .car-number {
+            background-color: rgba(94, 171, 225, 0.2);
+            color: var(--tg-theme-link-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
         }
         
         .car-details {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
         
         .detail-item {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
         }
         
         .detail-label {
             color: var(--tg-theme-hint-color);
+            font-size: 13px;
+            margin-bottom: 4px;
         }
         
         .detail-value {
             font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .status-badge .icon {
+            margin-right: 4px;
+            font-size: 14px;
         }
         
         .expired {
-            color: #ff7b7b;
+            background-color: rgba(255, 59, 48, 0.2);
+            color: #ff3b30;
         }
         
         .soon {
+            background-color: rgba(255, 204, 0, 0.2);
             color: #ffcc00;
         }
         
         .good {
-            color: #7bff7b;
+            background-color: rgba(76, 217, 100, 0.2);
+            color: #4cd964;
+        }
+        
+        .footer {
+            padding: 16px;
+            background-color: var(--tg-theme-bg-color);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .add-button {
             background-color: var(--tg-theme-button-color);
             color: var(--tg-theme-button-text-color);
             border: none;
-            border-radius: 10px;
+            border-radius: var(--tg-border-radius);
             padding: 12px 16px;
             font-size: 16px;
             font-weight: 500;
             width: 100%;
-            margin-top: 8px;
             cursor: pointer;
             transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .add-button:active {
             opacity: 0.8;
+        }
+        
+        .add-button .icon {
+            margin-right: 8px;
+            font-size: 18px;
         }
         
         .modal {
@@ -121,19 +187,24 @@
             z-index: 100;
             justify-content: center;
             align-items: center;
+            padding: 16px;
         }
         
         .modal-content {
-            background-color: var(--tg-theme-secondary-bg-color);
-            border-radius: 12px;
+            background-color: var(--tg-theme-section-bg-color);
+            border-radius: var(--tg-border-radius);
             padding: 16px;
-            width: 90%;
+            width: 100%;
             max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         
         .modal-title {
             margin-top: 0;
             margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
         }
         
         .input-group {
@@ -142,18 +213,27 @@
         
         .input-group label {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             color: var(--tg-theme-hint-color);
+            font-size: 14px;
         }
         
-        .input-group input, .input-group textarea {
+        .input-group input, 
+        .input-group textarea,
+        .input-group select {
             width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #2d3a48;
-            background-color: var(--tg-theme-bg-color);
+            padding: 10px 12px;
+            border-radius: var(--tg-border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--tg-theme-secondary-bg-color);
             color: var(--tg-theme-text-color);
             font-family: inherit;
+            font-size: 15px;
+        }
+        
+        .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
         }
         
         .modal-actions {
@@ -164,11 +244,17 @@
         }
         
         .modal-button {
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: var(--tg-border-radius);
             border: none;
             font-weight: 500;
+            font-size: 15px;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .modal-button:active {
+            opacity: 0.8;
         }
         
         .modal-cancel {
@@ -197,6 +283,7 @@
             justify-content: center;
             width: 80px;
             padding: 0 20px;
+            font-size: 15px;
         }
         
         .empty-state {
@@ -208,18 +295,64 @@
         .empty-state-icon {
             font-size: 48px;
             margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .update-mileage-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: var(--tg-theme-text-color);
+            font-size: 13px;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+        
+        .update-mileage-btn:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="header">
         <h1>Мои авто</h1>
-        
+    </div>
+    
+    <div class="content" id="content">
         <div id="cars-list">
             <!-- Cars will be added here dynamically -->
         </div>
-        
-        <button id="add-car-button" class="add-button">Добавить автомобиль</button>
+    </div>
+    
+    <div class="footer">
+        <button id="add-car-button" class="add-button">
+            <span class="icon">+</span>
+            Добавить автомобиль
+        </button>
     </div>
     
     <!-- Add/Edit Car Modal -->
@@ -238,13 +371,13 @@
             </div>
             
             <div class="input-group">
-                <label for="car-number">Номер</label>
-                <input type="text" id="car-number" placeholder="Гос. номер">
+                <label for="car-number">Гос. номер</label>
+                <input type="text" id="car-number" placeholder="A123BC777">
             </div>
             
             <div class="input-group">
-                <label for="car-mileage">Пробег (км)</label>
-                <input type="number" id="car-mileage" placeholder="Текущий пробег">
+                <label for="car-mileage">Текущий пробег (км)</label>
+                <input type="number" id="car-mileage" placeholder="Введите текущий пробег">
             </div>
             
             <div class="input-group">
@@ -254,22 +387,22 @@
             
             <div class="input-group">
                 <label for="car-last-oil-change">Последняя замена масла (км)</label>
-                <input type="number" id="car-last-oil-change" placeholder="Пробег при последней замене">
+                <input type="number" id="car-last-oil-change" placeholder="Пробег при замене">
             </div>
             
             <div class="input-group">
                 <label for="car-next-oil-change">Следующая замена масла (км)</label>
-                <input type="number" id="car-next-oil-change" placeholder="Пробег для следующей замены">
+                <input type="number" id="car-next-oil-change" placeholder="Авто: +10,000 км" readonly>
             </div>
             
             <div class="input-group">
                 <label for="car-last-timing-belt">Последняя замена ГРМ (км)</label>
-                <input type="number" id="car-last-timing-belt" placeholder="Пробег при последней замене ГРМ">
+                <input type="number" id="car-last-timing-belt" placeholder="Пробег при замене">
             </div>
             
             <div class="input-group">
                 <label for="car-next-timing-belt">Следующая замена ГРМ (км)</label>
-                <input type="number" id="car-next-timing-belt" placeholder="Пробег для следующей замены ГРМ">
+                <input type="number" id="car-next-timing-belt" placeholder="Авто: +60,000 км" readonly>
             </div>
             
             <div class="input-group">
@@ -283,7 +416,7 @@
             </div>
             
             <div class="input-group">
-                <label for="car-notes">Описание</label>
+                <label for="car-notes">Примечания</label>
                 <textarea id="car-notes" rows="3" placeholder="Дополнительная информация"></textarea>
             </div>
             
@@ -294,11 +427,32 @@
         </div>
     </div>
     
+    <!-- Update Mileage Modal -->
+    <div id="mileage-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Обновить пробег</h3>
+            
+            <div class="input-group">
+                <label for="new-mileage">Новый пробег (км)</label>
+                <input type="number" id="new-mileage" placeholder="Введите текущий пробег">
+            </div>
+            
+            <div class="modal-actions">
+                <button id="mileage-modal-cancel" class="modal-button modal-cancel">Отмена</button>
+                <button id="mileage-modal-save" class="modal-button modal-save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
+        
+        // Constants
+        const OIL_CHANGE_INTERVAL = 10000; // 10,000 km
+        const TIMING_BELT_INTERVAL = 60000; // 60,000 km
         
         // Haptic feedback
         function triggerHapticFeedback(type = 'light') {
@@ -310,6 +464,7 @@
         // Load cars from Telegram Cloud Storage
         let cars = [];
         let editingCarId = null;
+        let updatingMileageCarId = null;
         
         function loadCars() {
             const data = tg.CloudStorage.getItem('cars');
@@ -332,7 +487,7 @@
                 carsList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🚗</div>
-                        <p>У вас пока нет добавленных автомобилей</p>
+                        <div class="empty-state-text">У вас пока нет добавленных автомобилей</div>
                     </div>
                 `;
                 return;
@@ -344,33 +499,98 @@
                 
                 // Calculate days until insurance expires
                 let insuranceDays = '';
-                let insuranceClass = '';
+                let insuranceStatus = '';
+                let insuranceBadge = '';
                 if (car.insuranceDate) {
                     const insuranceDate = new Date(car.insuranceDate);
                     const diffTime = insuranceDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    insuranceDays = diffDays > 0 ? `${diffDays} ДН.` : `${Math.abs(diffDays)} ДН. назад`;
-                    insuranceClass = diffDays <= 0 ? 'expired' : (diffDays <= 30 ? 'soon' : 'good');
+                    
+                    if (diffDays > 0) {
+                        insuranceDays = `${diffDays} дн.`;
+                        insuranceStatus = diffDays <= 30 ? 'soon' : 'good';
+                    } else {
+                        insuranceDays = `Просрочено ${Math.abs(diffDays)} дн.`;
+                        insuranceStatus = 'expired';
+                    }
+                    
+                    insuranceBadge = `
+                        <span class="status-badge ${insuranceStatus}">
+                            <span class="icon">${insuranceStatus === 'expired' ? '⚠️' : '🛡️'}</span>
+                            ${insuranceDays}
+                        </span>
+                    `;
                 }
                 
                 // Calculate days until service
                 let serviceDays = '';
-                let serviceClass = '';
+                let serviceStatus = '';
+                let serviceBadge = '';
                 if (car.serviceDate) {
                     const serviceDate = new Date(car.serviceDate);
                     const diffTime = serviceDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    serviceDays = diffDays > 0 ? `${diffDays} ДН.` : `${Math.abs(diffDays)} ДН. назад`;
-                    serviceClass = diffDays <= 0 ? 'expired' : (diffDays <= 30 ? 'soon' : 'good');
+                    
+                    if (diffDays > 0) {
+                        serviceDays = `${diffDays} дн.`;
+                        serviceStatus = diffDays <= 30 ? 'soon' : 'good';
+                    } else {
+                        serviceDays = `Просрочено ${Math.abs(diffDays)} дн.`;
+                        serviceStatus = 'expired';
+                    }
+                    
+                    serviceBadge = `
+                        <span class="status-badge ${serviceStatus}">
+                            <span class="icon">${serviceStatus === 'expired' ? '⚠️' : '🔧'}</span>
+                            ${serviceDays}
+                        </span>
+                    `;
                 }
                 
                 // Calculate km until next oil change
                 let oilChangeKm = '';
-                let oilChangeClass = '';
+                let oilChangeStatus = '';
+                let oilChangeBadge = '';
                 if (car.nextOilChange && car.mileage) {
                     const diffKm = car.nextOilChange - car.mileage;
-                    oilChangeKm = diffKm > 0 ? `${diffKm} КМ` : 'Пора заменить';
-                    oilChangeClass = diffKm <= 0 ? 'expired' : (diffKm <= 1000 ? 'soon' : 'good');
+                    
+                    if (diffKm > 0) {
+                        oilChangeKm = `${diffKm} км`;
+                        oilChangeStatus = diffKm <= 1000 ? 'soon' : 'good';
+                    } else {
+                        oilChangeKm = 'Пора заменить';
+                        oilChangeStatus = 'expired';
+                    }
+                    
+                    oilChangeBadge = `
+                        <span class="status-badge ${oilChangeStatus}">
+                            <span class="icon">🛢️</span>
+                            ${oilChangeKm}
+                        </span>
+                    `;
+                }
+                
+                // Calculate km until next timing belt change
+                let timingBeltKm = '';
+                let timingBeltStatus = '';
+                let timingBeltBadge = '';
+                if (car.nextTimingBelt && car.mileage) {
+                    const diffKm = car.nextTimingBelt - car.mileage;
+                    
+                    if (diffKm > 0) {
+                        timingBeltKm = `${diffKm} км`;
+                        timingBeltStatus = diffKm <= 5000 ? 'soon' : 'good';
+                    } else {
+                        timingBeltKm = 'Пора заменить';
+                        timingBeltStatus = 'expired';
+                    }
+                    
+                    timingBeltBadge = `
+                        <span class="status-badge ${timingBeltStatus}">
+                            <span class="icon">⏱️</span>
+                            ${timingBeltKm}
+                        </span>
+                    `;
                 }
                 
                 // Create car card
@@ -379,20 +599,25 @@
                 carCard.dataset.id = index;
                 carCard.innerHTML = `
                     <div class="car-header">
-                        <div class="car-name">${car.name}</div>
+                        <div class="car-name">${car.name || 'Без названия'}</div>
+                        ${car.number ? `<div class="car-number">${car.number}</div>` : ''}
                     </div>
                     <div class="car-details">
                         <div class="detail-item">
                             <span class="detail-label">Страховка</span>
-                            <span class="detail-value ${insuranceClass}">${insuranceDays || '—'}</span>
+                            ${insuranceBadge || '<span class="detail-value">—</span>'}
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">ТО</span>
-                            <span class="detail-value ${serviceClass}">${serviceDays || '—'}</span>
+                            <span class="detail-label">Техобслуживание</span>
+                            ${serviceBadge || '<span class="detail-value">—</span>'}
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">До замены масла</span>
-                            <span class="detail-value ${oilChangeClass}">${oilChangeKm || '—'}</span>
+                            <span class="detail-label">Замена масла</span>
+                            ${oilChangeBadge || '<span class="detail-value">—</span>'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Замена ГРМ</span>
+                            ${timingBeltBadge || '<span class="detail-value">—</span>'}
                         </div>
                     </div>
                     <div class="swipe-actions">
@@ -460,6 +685,18 @@
             resetForm();
         }
         
+        function showMileageModal(carIndex) {
+            updatingMileageCarId = carIndex;
+            const car = cars[carIndex];
+            document.getElementById('new-mileage').value = car.mileage || '';
+            document.getElementById('mileage-modal').style.display = 'flex';
+        }
+        
+        function hideMileageModal() {
+            document.getElementById('mileage-modal').style.display = 'none';
+            updatingMileageCarId = null;
+        }
+        
         function resetForm() {
             document.getElementById('car-name').value = '';
             document.getElementById('car-vin').value = '';
@@ -512,6 +749,32 @@
             saveCars();
         }
         
+        function updateMileage() {
+            const newMileage = parseInt(document.getElementById('new-mileage').value);
+            
+            if (isNaN(newMileage) || newMileage < 0) {
+                alert('Пожалуйста, введите корректный пробег');
+                return;
+            }
+            
+            const car = cars[updatingMileageCarId];
+            car.mileage = newMileage;
+            
+            // Auto-calculate next oil change if last oil change is set
+            if (car.lastOilChange) {
+                car.nextOilChange = car.lastOilChange + OIL_CHANGE_INTERVAL;
+            }
+            
+            // Auto-calculate next timing belt change if last timing belt is set
+            if (car.lastTimingBelt) {
+                car.nextTimingBelt = car.lastTimingBelt + TIMING_BELT_INTERVAL;
+            }
+            
+            saveCars();
+            hideMileageModal();
+            triggerHapticFeedback('success');
+        }
+        
         function saveCar() {
             const car = {
                 name: document.getElementById('car-name').value,
@@ -527,6 +790,18 @@
                 serviceDate: document.getElementById('car-service-date').value,
                 notes: document.getElementById('car-notes').value
             };
+            
+            // Auto-calculate next oil change if last oil change is set
+            if (car.lastOilChange) {
+                car.nextOilChange = car.lastOilChange + OIL_CHANGE_INTERVAL;
+                document.getElementById('car-next-oil-change').value = car.nextOilChange;
+            }
+            
+            // Auto-calculate next timing belt change if last timing belt is set
+            if (car.lastTimingBelt) {
+                car.nextTimingBelt = car.lastTimingBelt + TIMING_BELT_INTERVAL;
+                document.getElementById('car-next-timing-belt').value = car.nextTimingBelt;
+            }
             
             if (!car.name) {
                 alert('Пожалуйста, укажите название автомобиля');
@@ -544,10 +819,28 @@
             triggerHapticFeedback('success');
         }
         
+        // Auto-calculate next oil change when last oil change is entered
+        document.getElementById('car-last-oil-change').addEventListener('input', function() {
+            const lastOilChange = parseInt(this.value);
+            if (!isNaN(lastOilChange) {
+                document.getElementById('car-next-oil-change').value = lastOilChange + OIL_CHANGE_INTERVAL;
+            }
+        });
+        
+        // Auto-calculate next timing belt change when last timing belt is entered
+        document.getElementById('car-last-timing-belt').addEventListener('input', function() {
+            const lastTimingBelt = parseInt(this.value);
+            if (!isNaN(lastTimingBelt)) {
+                document.getElementById('car-next-timing-belt').value = lastTimingBelt + TIMING_BELT_INTERVAL;
+            }
+        });
+        
         // Event listeners
         document.getElementById('add-car-button').addEventListener('click', addCar);
         document.getElementById('modal-cancel').addEventListener('click', hideModal);
         document.getElementById('modal-save').addEventListener('click', saveCar);
+        document.getElementById('mileage-modal-cancel').addEventListener('click', hideMileageModal);
+        document.getElementById('mileage-modal-save').addEventListener('click', updateMileage);
         
         // Initialize
         tg.ready();
