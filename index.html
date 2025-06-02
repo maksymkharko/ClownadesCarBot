@@ -1,224 +1,227 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои авто</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg-color: #ffffff;
-            --tg-theme-text-color: #000000;
-            --tg-theme-hint-color: #999999;
-            --tg-theme-link-color: #2481cc;
-            --tg-theme-button-color: #2481cc;
-            --tg-theme-button-text-color: #ffffff;
-            --tg-theme-secondary-bg-color: #f4f4f5;
+            --background-color: var(--tg-theme-bg-color, #0a0a0c);
+            --glass-background: rgba(15, 17, 21, 0.65);
+            --glass-border: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.07));
+            --text-primary: var(--tg-theme-text-color, #ffffff);
+            --text-secondary: var(--tg-theme-hint-color, rgba(255, 255, 255, 0.65));
+            --accent-blue: var(--tg-theme-button-color, #0A84FF);
+            --accent-red: var(--tg-theme-destructive-text-color, #FF453A);
+            --accent-green: #32D74B;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --button-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --input-background: var(--tg-theme-secondary-bg-color, rgba(30, 34, 42, 0.5));
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            line-height: 1.4;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-primary);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        .header {
-            padding: 16px;
-            text-align: center;
-            background-color: var(--tg-theme-bg-color);
-            border-bottom: 1px solid var(--tg-theme-secondary-bg-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        .header h1 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color);
-        }
-
-        .add-button {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-            z-index: 101;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .add-button:active {
-            transform: scale(0.95);
-        }
-
-        .car-card {
-            background-color: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s;
-            touch-action: pan-y pinch-zoom;
-        }
-
-        .car-header {
+        /* Top Panel */
+        .top-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--button-shadow);
         }
 
-        .car-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color);
-        }
-
-        .car-number {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color);
-            background-color: var(--tg-theme-secondary-bg-color);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .car-details {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .status-badge.good {
-            background-color: rgba(52, 199, 89, 0.1);
-            color: #34c759;
-        }
-
-        .status-badge.soon {
-            background-color: rgba(255, 204, 0, 0.1);
-            color: #ffcc00;
-        }
-
-        .status-badge.expired {
-            background-color: rgba(255, 59, 48, 0.1);
-            color: #ff3b30;
-        }
-
-        .swipe-actions {
-            position: absolute;
-            right: -80px;
-            top: 0;
-            bottom: 0;
-            width: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #ff3b30;
-            color: white;
-            transition: transform 0.2s;
-        }
-
-        .swipe-delete {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .update-mileage-button {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--tg-theme-secondary-bg-color);
-            color: var(--tg-theme-text-color);
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: 8px;
-        }
-
-        .update-mileage-button:active {
-            opacity: 0.8;
-        }
-
-        .footer-username {
-            width: 100%;
+        .back-button {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 20px;
+            width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--tg-theme-bg-color);
-            border-top: 1px solid var(--tg-theme-secondary-bg-color);
-            color: var(--tg-theme-hint-color);
-            font-size: 14px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
+            border-radius: 12px;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .content {
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .back-button:active {
+            transform: translateY(1px);
+        }
+
+        .add-car-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .add-car-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .add-car-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Main Title */
+        .main-title {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Car List */
+        .car-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .car-item {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .car-item:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .car-item:active {
+            transform: translateY(1px);
+        }
+
+        .car-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        /* Timer Display */
+        .timer-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 15px;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--button-shadow);
+        }
+
+        .timer {
             flex: 1;
-            padding: 16px;
-            padding-bottom: 120px;
+            background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid #000;
+            position: relative;
         }
 
+        .timer::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .timer-label {
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .timer-value {
+            font-family: "DS-Digital", monospace;
+            color: #FF3B30;
+            font-size: 24px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+            background: linear-gradient(to bottom, #1a1a1a, #000);
+            padding: 5px;
+            border-radius: 4px;
+            letter-spacing: 2px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-value::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .timer.warning .timer-value {
+            color: var(--accent-red);
+            animation: blink 1s infinite;
+        }
+
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -226,754 +229,1134 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
         }
 
         .modal-content {
-            background-color: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
+            background: var(--glass-background);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            width: calc(100% - 60px);
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--modal-shadow);
+            position: relative;
+            margin: auto;
+            max-height: calc(100vh - 60px);
             overflow-y: auto;
-            margin: 16px;
         }
 
-        .modal-title {
-            font-size: 20px;
+        /* Стилизация скроллбара для WebKit браузеров */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--glass-background);
+            border-radius: 4px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal h2 {
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            font-size: 24px;
             font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--tg-theme-text-color);
         }
 
-        .input-group {
-            margin-bottom: 16px;
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
         }
 
-        .input-group label {
+        .form-group label {
             display: block;
-            font-size: 14px;
-            color: var(--tg-theme-hint-color);
             margin-bottom: 8px;
-        }
-
-        .input-group input,
-        .input-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--tg-theme-secondary-bg-color);
-            border-radius: 8px;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            font-size: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .input-group input:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: var(--tg-theme-button-color);
-        }
-
-        .input-group input::placeholder,
-        .input-group textarea::placeholder {
-            color: var(--tg-theme-hint-color);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .modal-button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
             font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .modal-button:active {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-background);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.1);
+            outline: none;
+        }
+
+        /* Info Grid Styles */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 12px 12px 0 0;
+            pointer-events: none;
+        }
+
+        .info-item label {
+            display: block;
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 5px;
             opacity: 0.8;
         }
 
-        .modal-cancel {
-            background-color: var(--tg-theme-secondary-bg-color);
-            color: var(--tg-theme-text-color);
+        .info-item span {
+            display: block;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
         }
 
-        .modal-save {
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-        }
-
-        .empty-state {
+        .vin-container {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-button {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--button-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 6px 6px 0 0;
+            pointer-events: none;
+        }
+
+        .copy-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Modal Buttons */
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--glass-border);
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            color: var(--text-primary);
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 48px 16px;
             text-align: center;
-            color: var(--tg-theme-hint-color);
         }
 
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
+        .modal-buttons button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .empty-state-text {
+        .modal-buttons button:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-buttons button:hover::before {
+            opacity: 0.8;
+        }
+
+        .modal-buttons button:active {
+            transform: translateY(1px);
+        }
+
+        .save-button {
+            background: rgba(10, 132, 255, 0.3) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid rgba(10, 132, 255, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(10, 132, 255, 0.2);
+        }
+
+        .save-button:hover {
+            background: rgba(10, 132, 255, 0.4) !important;
+            border-color: rgba(10, 132, 255, 0.5) !important;
+            box-shadow: 0 6px 16px rgba(10, 132, 255, 0.3);
+        }
+
+        .save-button:active {
+            background: rgba(10, 132, 255, 0.5) !important;
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
+        }
+
+        .cancel-button {
+            background: rgba(30, 34, 42, 0.5);
+            color: var(--text-primary) !important;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .cancel-button:hover {
+            background: rgba(30, 34, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .cancel-button:active {
+            background: rgba(30, 34, 42, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .delete-button {
+            background: rgba(255, 69, 58, 0.3) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid rgba(255, 69, 58, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(255, 69, 58, 0.2);
+        }
+
+        .delete-button:hover {
+            background: rgba(255, 69, 58, 0.4) !important;
+            border-color: rgba(255, 69, 58, 0.5) !important;
+            box-shadow: 0 6px 16px rgba(255, 69, 58, 0.3);
+        }
+
+        .delete-button:active {
+            background: rgba(255, 69, 58, 0.5) !important;
+            box-shadow: 0 2px 8px rgba(255, 69, 58, 0.2);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
             font-size: 16px;
+            box-shadow: var(--modal-shadow);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
         }
 
-        @media (max-width: 360px) {
-            .car-details {
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .confirmation-dialog.active {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .dialog-content {
+            background: var(--glass-background);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--modal-shadow);
+        }
+
+        .dialog-content p {
+            color: var(--text-primary);
+            font-size: 18px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 15px;
+            }
+            
+            .modal {
+                padding: 15px;
+            }
+            
+            .modal-content {
+                width: calc(100% - 30px);
+                padding: 20px;
+                max-height: calc(100vh - 30px);
+            }
+            
+            .timer-container {
+                flex-direction: column;
+            }
+
+            .info-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Animations */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Add custom font for timer display */
+        @font-face {
+            font-family: 'DS-Digital';
+            src: url('https://db.onlinewebfonts.com/t/8e22783d707ad140bffe18b2a3812529.woff2') format('woff2');
+        }
+
+        /* URL styles */
+        .info-item a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            word-break: break-all;
+            transition: color 0.2s ease;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .info-item a:hover {
+            color: var(--accent-blue);
+            text-decoration: underline;
+        }
+
+        .description-text {
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .edit-description-button,
+        .save-description-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: var(--button-shadow);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .edit-description-button::before,
+        .save-description-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 6px 6px 0 0;
+            pointer-events: none;
+        }
+
+        .edit-description-button:active,
+        .save-description-button:active {
+            transform: translateY(1px);
+        }
+
+        .description-edit {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            background: var(--input-background);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            margin-top: 10px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            background-image: linear-gradient(180deg, #f8f8f8 0%, #ffffff 100%);
+        }
+
+        .description-edit:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-preview {
+            display: none;
+            font-size: 12px;
+            color: var(--accent-blue);
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 4px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--button-shadow);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* Transform input to uppercase for VIN and plate number */
+        input[id="vin"],
+        input[id="plate"] {
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Мои авто</h1>
-    </div>
-    
-    <button id="add-car-button" class="add-button">
-        <span class="icon">+</span>
-    </button>
-    
-    <div class="content" id="content">
-        <div id="cars-list">
-            <!-- Cars will be added here dynamically -->
+    <div class="app-container">
+        <div class="top-panel">
+            <a href="#" class="back-button"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="main-title">Мои авто</h1>
+            <button class="add-car-button"><i class="fas fa-plus"></i></button>
         </div>
+        <div class="car-list" id="carList"></div>
     </div>
-    
-    <div class="footer-username">
-        @username
-    </div>
-    
-    <!-- Add/Edit Car Modal -->
-    <div id="car-modal" class="modal">
+
+    <div class="modal" id="addCarModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="modal-title">Добавить автомобиль</h3>
-            
-            <div class="input-group">
-                <label for="car-name">Название</label>
-                <input type="text" id="car-name" placeholder="Например: Мой BMW">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-vin">VIN</label>
-                <input type="text" id="car-vin" placeholder="Введите VIN">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-number">Гос. номер</label>
-                <input type="text" id="car-number" placeholder="A123BC777">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-mileage">Текущий пробег (км)</label>
-                <input type="number" id="car-mileage" placeholder="Введите текущий пробег">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-purchase-date">Дата покупки</label>
-                <input type="date" id="car-purchase-date">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-last-oil-change">Последняя замена масла (км)</label>
-                <input type="number" id="car-last-oil-change" placeholder="Пробег при замене">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-next-oil-change">Следующая замена масла (км)</label>
-                <input type="number" id="car-next-oil-change" placeholder="Авто: +10,000 км" readonly>
-            </div>
-            
-            <div class="input-group">
-                <label for="car-last-timing-belt">Последняя замена ГРМ (км)</label>
-                <input type="number" id="car-last-timing-belt" placeholder="Пробег при замене">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-next-timing-belt">Следующая замена ГРМ (км)</label>
-                <input type="number" id="car-next-timing-belt" placeholder="Авто: +60,000 км" readonly>
-            </div>
-            
-            <div class="input-group">
-                <label for="car-insurance-date">Страховка до</label>
-                <input type="date" id="car-insurance-date">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-service-date">ТО до</label>
-                <input type="date" id="car-service-date">
-            </div>
-            
-            <div class="input-group">
-                <label for="car-notes">Примечания</label>
-                <textarea id="car-notes" rows="3" placeholder="Дополнительная информация"></textarea>
-            </div>
-            
-            <div class="modal-actions">
-                <button id="modal-cancel" class="modal-button modal-cancel">Отмена</button>
-                <button id="modal-save" class="modal-button modal-save">Сохранить</button>
-            </div>
+            <h2>Добавить автомобиль</h2>
+            <form id="addCarForm">
+                <div class="form-group">
+                    <label for="carName">Название машины*</label>
+                    <input type="text" id="carName" required>
+                </div>
+                <div class="form-group">
+                    <label for="mileage">Актуальный пробег (км)*</label>
+                    <input type="number" id="mileage" required>
+                </div>
+                <div class="form-group">
+                    <label for="vin">VIN*</label>
+                    <input type="text" id="vin" required>
+                </div>
+                <div class="form-group">
+                    <label for="plate">Номер машины*</label>
+                    <input type="text" id="plate" required>
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Дата покупки*</label>
+                    <input type="date" id="purchaseDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastOilChange">Пробег на последней замене масла (км)*</label>
+                    <input type="number" id="lastOilChange" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastTimingBelt">Пробег на последней замене ГРМ (км)*</label>
+                    <input type="number" id="lastTimingBelt" required>
+                </div>
+                <div class="form-group">
+                    <label for="insuranceEnd">Дата окончания страховки*</label>
+                    <input type="date" id="insuranceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="maintenanceEnd">Дата окончания ТО*</label>
+                    <input type="date" id="maintenanceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <textarea id="description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="link1">Ссылка 1</label>
+                    <input type="url" id="link1">
+                </div>
+                <div class="form-group">
+                    <label for="link2">Ссылка 2</label>
+                    <input type="url" id="link2">
+                </div>
+                <div class="form-group">
+                    <label for="link3">Ссылка 3</label>
+                    <input type="url" id="link3">
+                </div>
+                <div class="form-group">
+                    <label for="link4">Ссылка 4</label>
+                    <input type="url" id="link4">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="save-button">Сохранить</button>
+                    <button type="button" class="cancel-button">Отмена</button>
+                </div>
+            </form>
         </div>
     </div>
-    
-    <!-- Update Mileage Modal -->
-    <div id="mileage-modal" class="modal">
+
+    <div class="modal" id="viewCarModal">
         <div class="modal-content">
-            <h3 class="modal-title">Обновить пробег</h3>
-            
-            <div class="input-group">
-                <label for="new-mileage">Новый пробег (км)</label>
-                <input type="number" id="new-mileage" placeholder="Введите текущий пробег">
-            </div>
-            
-            <div class="modal-actions">
-                <button id="mileage-modal-cancel" class="modal-button modal-cancel">Отмена</button>
-                <button id="mileage-modal-save" class="modal-button modal-save">Сохранить</button>
+            <div class="car-info"></div>
+            <div class="modal-buttons">
+                <button class="edit-button">Редактировать</button>
+                <button class="delete-button">Удалить</button>
+                <button class="close-button">Закрыть</button>
             </div>
         </div>
     </div>
-    
+
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="dialog-content">
+            <p>Вы уверены, что хотите удалить этот автомобиль?</p>
+            <div class="modal-buttons">
+                <button class="confirm-button delete-button">Удалить</button>
+                <button class="cancel-button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
     <script>
-        // Initialize Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-        
+        // Load Font Awesome for icons
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+        document.head.appendChild(link);
+
         // Constants
+        const STORAGE_KEY = 'clownadescarskey';
         const OIL_CHANGE_INTERVAL = 10000; // 10,000 km
-        const TIMING_BELT_INTERVAL = 60000; // 60,000 km
-        const FALLBACK_STORAGE_KEY = 'cars_fallback';
-        
+        const WARNING_DAYS = 7;
+
+        // DOM Elements
+        const carList = document.getElementById('carList');
+        const addCarModal = document.getElementById('addCarModal');
+        const viewCarModal = document.getElementById('viewCarModal');
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const toast = document.getElementById('toast');
+        const addCarForm = document.getElementById('addCarForm');
+
         // State
         let cars = [];
-        let editingCarId = null;
-        let updatingMileageCarId = null;
-        
-        // Check if CloudStorage is available
-        function isCloudStorageAvailable() {
-            return window.Telegram && 
-                   window.Telegram.WebApp && 
-                   window.Telegram.WebApp.CloudStorage &&
-                   typeof window.Telegram.WebApp.CloudStorage.getItem === 'function' &&
-                   typeof window.Telegram.WebApp.CloudStorage.setItem === 'function';
+        let currentCarIndex = -1;
+
+        // Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCars();
+            renderCarList();
+            setupEventListeners();
+            adaptTheme();
+        });
+
+        // Adapt theme to Telegram
+        function adaptTheme() {
+            tg.onEvent('themeChanged', () => {
+                document.documentElement.style.setProperty('--background-color', tg.themeParams.bg_color || '#0a0a0c');
+                document.documentElement.style.setProperty('--glass-border', tg.themeParams.secondary_bg_color || 'rgba(255, 255, 255, 0.07)');
+                document.documentElement.style.setProperty('--text-primary', tg.themeParams.text_color || '#ffffff');
+                document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || 'rgba(255, 255, 255, 0.65)');
+                document.documentElement.style.setProperty('--accent-blue', tg.themeParams.button_color || '#0A84FF');
+                document.documentElement.style.setProperty('--accent-red', tg.themeParams.destructive_text_color || '#FF453A');
+                document.documentElement.style.setProperty('--input-background', tg.themeParams.secondary_bg_color || 'rgba(30, 34, 42, 0.5)');
+            });
         }
-        
-        // Haptic feedback
-        function triggerHapticFeedback(type = 'light') {
-            if (tg.isVersionAtLeast('6.1')) {
-                tg.HapticFeedback.impactOccurred(type);
-            }
+
+        // Event Listeners Setup
+        function setupEventListeners() {
+            // Add car button
+            document.querySelector('.add-car-button').addEventListener('click', () => {
+                addCarModal.style.display = 'block';
+                tg.HapticFeedback.impactOccurred('light');
+            });
+
+            // Add car form
+            addCarForm.addEventListener('submit', handleAddCar);
+            addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
+                addCarModal.style.display = 'none';
+                addCarForm.reset();
+                tg.HapticFeedback.impactOccurred('light');
+            });
+
+            // View car modal buttons
+            viewCarModal.querySelector('.edit-button').addEventListener('click', () => {
+                handleEditCar();
+                tg.HapticFeedback.impactOccurred('medium');
+            });
+            viewCarModal.querySelector('.delete-button').addEventListener('click', () => {
+                showDeleteConfirmation();
+                tg.HapticFeedback.impactOccurred('medium');
+            });
+            viewCarModal.querySelector('.close-button').addEventListener('click', () => {
+                viewCarModal.style.display = 'none';
+                tg.HapticFeedback.impactOccurred('light');
+            });
+
+            // Confirmation dialog
+            confirmationDialog.querySelector('.confirm-button').addEventListener('click', () => {
+                handleDeleteCar();
+                tg.HapticFeedback.impactOccurred('heavy');
+            });
+            confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
+                confirmationDialog.style.display = 'none';
+                tg.HapticFeedback.impactOccurred('light');
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === addCarModal) {
+                    addCarModal.style.display = 'none';
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                if (e.target === viewCarModal) {
+                    viewCarModal.style.display = 'none';
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            });
         }
-        
-        // Load cars from storage
+
+        // Car Management Functions
         async function loadCars() {
             try {
-                console.log('Loading cars...');
-                
-                // Try CloudStorage first
-                if (isCloudStorageAvailable()) {
-                    const data = await window.Telegram.WebApp.CloudStorage.getItem('cars');
-                    if (data) {
-                        cars = JSON.parse(data);
-                        console.log('Loaded from CloudStorage:', cars);
-                        renderCars();
-                        return;
-                    }
-                }
-                
-                // Fallback to localStorage
-                const fallbackData = localStorage.getItem(FALLBACK_STORAGE_KEY);
-                if (fallbackData) {
-                    cars = JSON.parse(fallbackData);
-                    console.log('Loaded from fallback storage:', cars);
-                    renderCars();
-                    return;
-                }
-                
-                // No data found
+                const data = await tg.CloudStorage.getItem(STORAGE_KEY);
+                cars = data ? JSON.parse(data).cars || [] : [];
+                renderCarList();
+            } catch (e) {
+                console.error('Error loading cars:', e);
                 cars = [];
-                renderCars();
-            } catch (error) {
-                console.error('Error loading cars:', error);
-                cars = [];
-                renderCars();
             }
         }
-        
-        // Save cars to storage
+
         async function saveCars() {
             try {
-                console.log('Saving cars...');
-                const data = JSON.stringify(cars);
-                
-                // Check data size
-                if (new Blob([data]).size > 4000) {
-                    throw new Error('Data size exceeds CloudStorage limit (4KB)');
-                }
-                
-                // Try CloudStorage first
-                if (isCloudStorageAvailable()) {
-                    await window.Telegram.WebApp.CloudStorage.setItem('cars', data);
-                    console.log('Saved to CloudStorage');
-                }
-                
-                // Always save to fallback storage
-                localStorage.setItem(FALLBACK_STORAGE_KEY, data);
-                console.log('Saved to fallback storage');
-                
-                renderCars();
-                return true;
-            } catch (error) {
-                console.error('Error saving cars:', error);
-                return false;
+                await tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }));
+            } catch (e) {
+                console.error('Error saving cars:', e);
+                showToast('Ошибка при сохранении данных');
             }
         }
-        
-        // Render cars list
-        function renderCars() {
-            const carsList = document.getElementById('cars-list');
-            carsList.innerHTML = '';
+
+        async function handleAddCar(e) {
+            e.preventDefault();
             
-            if (cars.length === 0) {
-                carsList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🚗</div>
-                        <div class="empty-state-text">У вас пока нет добавленных автомобилей</div>
-                    </div>
-                `;
-                return;
+            const newCar = {
+                name: document.getElementById('carName').value,
+                mileage: parseInt(document.getElementById('mileage').value),
+                vin: document.getElementById('vin').value.toUpperCase(),
+                plate: document.getElementById('plate').value.toUpperCase(),
+                purchaseDate: document.getElementById('purchaseDate').value,
+                lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
+                lastSpacingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
+                insuranceEndDate: document.getElementById('insuranceEnd').value,
+                maintenanceEndDate: document.getElementById('maintenanceEnd').value,
+                description: document.getElementById('description').value || '',
+                link1: formatURL(document.getElementById('link1').value),
+                link2: formatURL(document.getElementById('link2').value),
+                link3: formatURL(document.getElementById('link3').value),
+                link4: formatURL(document.getElementById('link4').value)
+            };
+
+            cars.push(newCar);
+            await saveCars();
+            renderCarList();
+            
+            addCarModal.style.display = 'none';
+            addCarForm.reset();
+            showToast('Автомобиль добавлен');
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        async function handleEditCar() {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            const car = cars[currentCarIndex];
+
+            if (carInfo.classList.contains('editing')) {
+                // Save changes
+                car.name = carInfo.querySelector('[data-field="name"]').value;
+                car.mileage = parseInt(carInfo.querySelector('[data-field="mileage"]').value);
+                car.vin = carInfo.querySelector('[data-field="vin"]').value.toUpperCase();
+                car.plate = carInfo.querySelector('[data-field="plate"]').value.toUpperCase();
+                car.purchaseDate = carInfo.querySelector('[data-field="purchaseDate"]').value;
+                car.lastOilChangeMileage = parseInt(carInfo.querySelector('[data-field="lastOilChangeMileage"]').value);
+                car.lastTimingBeltMileage = parseInt(carInfo.querySelector('[data-field="lastTimingBeltMileage"]').value);
+                car.insuranceEndDate = carInfo.querySelector('[data-field="insuranceEndDate"]').value;
+                car.maintenanceEndDate = carInfo.querySelector('[data-field="maintenanceEndDate"]').value;
+                car.description = carInfo.querySelector('[data-field="description"]').value;
+                car.link1 = formatURL(carInfo.querySelector('[data-field="link1"]').value);
+                car.link2 = formatURL(carInfo.querySelector('[data-field="link2"]').value);
+                car.link3 = formatURL(carInfo.querySelector('[data-field="link3"]').value);
+                car.link4 = formatURL(carInfo.querySelector('[data-field="link4"]').value);
+
+                await saveCars();
+                renderCarList();
+                showToast('Изменения сохранены');
+                tg.HapticFeedback.notificationOccurred('success');
+                
+                carInfo.classList.remove('editing');
+                viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
+                renderCarInfo(car);
+            } else {
+                // Enter edit mode
+                carInfo.classList.add('editing');
+                viewCarModal.querySelector('.edit-button').textContent = 'Сохранить';
+                renderCarInfoEditable(car);
             }
+        }
+
+        async function handleDeleteCar() {
+            cars.splice(currentCarIndex, 1);
+            await saveCars();
+            renderCarList();
             
+            confirmationDialog.style.display = 'none';
+            viewCarModal.style.display = 'none';
+            showToast('Автомобиль удален');
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        // UI Functions
+        function renderCarList() {
+            carList.innerHTML = '';
             cars.forEach((car, index) => {
-                const carCard = createCarCard(car, index);
-                carsList.appendChild(carCard);
+                const carElement = createCarElement(car, index);
+                carList.appendChild(carElement);
             });
         }
-        
-        // Create car card element
-        function createCarCard(car, index) {
-            const carCard = document.createElement('div');
-            carCard.className = 'car-card';
-            carCard.dataset.id = index;
-            
-            // Calculate statuses
-            const insuranceStatus = calculateInsuranceStatus(car);
-            const serviceStatus = calculateServiceStatus(car);
-            const oilChangeStatus = calculateOilChangeStatus(car);
-            const timingBeltStatus = calculateTimingBeltStatus(car);
-            
-            carCard.innerHTML = `
-                <div class="car-header">
-                    <div class="car-name">${car.name || 'Без названия'}</div>
-                    ${car.number ? `<div class="car-number">${car.number}</div>` : ''}
-                </div>
-                <div class="car-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Страховка</span>
-                        ${insuranceStatus.badge || '<span class="detail-value">—</span>'}
+
+        function createCarElement(car, index) {
+            const div = document.createElement('div');
+            div.className = 'car-item';
+            div.innerHTML = `
+                <div class="car-name">${car.name}</div>
+                <div class="timer-container">
+                    <div class="timer ${isDateWarning(car.insuranceEndDate) ? 'warning' : ''}">
+                        <div class="timer-label">Страховка</div>
+                        <div class="timer-value">${formatTimeRemaining(car.insuranceEndDate)}</div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Техобслуживание</span>
-                        ${serviceStatus.badge || '<span class="detail-value">—</span>'}
+                    <div class="timer ${isDateWarning(car.maintenanceEndDate) ? 'warning' : ''}">
+                        <div class="timer-label">ТО</div>
+                        <div class="timer-value">${formatTimeRemaining(car.maintenanceEndDate)}</div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Замена масла</span>
-                        ${oilChangeStatus.badge || '<span class="detail-value">—</span>'}
+                    <div class="timer">
+                        <div class="timer-label">До замены масла</div>
+                        <div class="timer-value">${formatMileageRemaining(car.mileage, car.lastOilChangeMileage)} км</div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Замена ГРМ</span>
-                        ${timingBeltStatus.badge || '<span class="detail-value">—</span>'}
-                    </div>
-                </div>
-                <button class="update-mileage-button" onclick="showMileageModal(${index})">
-                    Обновить пробег
-                </button>
-                <div class="swipe-actions">
-                    <div class="swipe-delete">Удалить</div>
                 </div>
             `;
-            
-            // Add event listeners
-            setupCarCardEvents(carCard, index);
-            
-            return carCard;
-        }
-        
-        // Setup swipe events for car card
-        function setupCarCardEvents(carCard, index) {
-            let startX, currentX;
-            let isSwiping = false;
-            
-            carCard.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-                currentX = startX;
-                isSwiping = true;
-                triggerHapticFeedback('light');
-            }, { passive: true });
-            
-            carCard.addEventListener('touchmove', (e) => {
-                if (!isSwiping) return;
-                currentX = e.touches[0].clientX;
-                const diff = startX - currentX;
-                
-                if (diff > 0) {
-                    carCard.style.transform = `translateX(-${Math.min(diff, 80)}px)`;
-                    const swipeActions = carCard.querySelector('.swipe-actions');
-                    swipeActions.style.transform = `translateX(${Math.min(diff, 80)}px)`;
-                }
-            }, { passive: true });
-            
-            carCard.addEventListener('touchend', () => {
-                if (!isSwiping) return;
-                isSwiping = false;
-                
-                const diff = startX - currentX;
-                if (diff > 50) {
-                    carCard.style.transform = 'translateX(-80px)';
-                    const swipeActions = carCard.querySelector('.swipe-actions');
-                    swipeActions.style.transform = 'translateX(80px)';
-                    triggerHapticFeedback('medium');
-                } else {
-                    carCard.style.transform = '';
-                    const swipeActions = carCard.querySelector('.swipe-actions');
-                    swipeActions.style.transform = '';
-                }
-            }, { passive: true });
-            
-            // Delete button handler
-            const deleteButton = carCard.querySelector('.swipe-delete');
-            deleteButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                triggerHapticFeedback('heavy');
-                deleteCar(index);
+
+            div.addEventListener('click', () => {
+                showCarDetails(index);
+                tg.HapticFeedback.impactOccurred('light');
             });
-            
-            // Edit on click
-            carCard.addEventListener('click', () => {
-                editCar(index);
-            });
+            return div;
         }
-        
-        // Status calculation functions
-        function calculateInsuranceStatus(car) {
-            if (!car.insuranceDate) return { badge: '' };
-            
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const insuranceDate = new Date(car.insuranceDate);
-            const diffTime = insuranceDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            let status = '';
-            let icon = '';
-            let text = '';
-            
-            if (diffDays > 0) {
-                text = `${diffDays} дн.`;
-                status = diffDays <= 30 ? 'soon' : 'good';
-                icon = '🛡️';
-            } else {
-                text = `Просрочено ${Math.abs(diffDays)} дн.`;
-                status = 'expired';
-                icon = '⚠️';
-            }
-            
-            return {
-                badge: `<span class="status-badge ${status}"><span class="icon">${icon}</span>${text}</span>`
-            };
+
+        function renderCarInfo(car) {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            carInfo.innerHTML = `
+                <h3>${car.name}</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>VIN:</label>
+                        <div class="vin-container">
+                            <span>${car.vin}</span>
+                            <button class="copy-button" onclick="copyVIN('${car.vin}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>Номер:</label>
+                        <span>${car.plate}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Пробег:</label>
+                        <span>${car.mileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Дата покупки:</label>
+                        <span>${formatDate(car.purchaseDate)}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Последняя замена масла:</label>
+                        <span>${car.lastOilChangeMileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Последняя замена ГРМ:</label>
+                        <span>${car.lastTimingBeltMileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Страховка до:</label>
+                        <span>${formatDate(car.insuranceEndDate)}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>ТО до:</label>
+                        <span>${formatDate(car.maintenanceEndDate)}</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Описание:</label>
+                        <div class="description-text">${car.description || 'Нет описания'}</div>
+                        <button class="edit-description-button" onclick="editDescription(${currentCarIndex})">
+                            <i class="fas fa-edit"></i> Редактировать описание
+                        </button>
+                    </div>
+                    ${renderLinks(car)}
+                </div>
+            `;
         }
-        
-        function calculateServiceStatus(car) {
-            if (!car.serviceDate) return { badge: '' };
-            
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const serviceDate = new Date(car.serviceDate);
-            const diffTime = serviceDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            let status = '';
-            let icon = '';
-            let text = '';
-            
-            if (diffDays > 0) {
-                text = `${diffDays} дн.`;
-                status = diffDays <= 30 ? 'soon' : 'good';
-                icon = '🔧';
-            } else {
-                text = `Просрочено ${Math.abs(diffDays)} дн.`;
-                status = 'expired';
-                icon = '⚠️';
-            }
-            
-            return {
-                badge: `<span class="status-badge ${status}"><span class="icon">${icon}</span>${text}</span>`
-            };
+
+        function renderCarInfoEditable(car) {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            carInfo.innerHTML = `
+                <div class="form-group">
+                    <label>Название:</label>
+                    <input type="text" data-field="name" value="${car.name}" required>
+                </div>
+                <div class="form-group">
+                    <label>VIN:</label>
+                    <input type="text" data-field="vin" value="${car.vin}" required>
+                </div>
+                <div class="form-group">
+                    <label>Номер:</label>
+                    <input type="text" data-field="plate" value="${car.plate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Пробег (км):</label>
+                    <input type="number" data-field="mileage" value="${car.mileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Дата покупки:</label>
+                    <input type="date" data-field="purchaseDate" value="${car.purchaseDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Пробег на последней замене масла (км):</label>
+                    <input type="number" data-field="lastOilChangeMileage" value="${car.lastOilChangeMileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Пробег на последней замене ГРМ (км):</label>
+                    <input type="number" data-field="lastTimingBeltMileage" value="${car.lastTimingBeltMileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Страховка до:</label>
+                    <input type="date" data-field="insuranceEndDate" value="${car.insuranceEndDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>ТО до:</label>
+                    <input type="date" data-field="maintenanceEndDate" value="${car.maintenanceEndDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Описание:</label>
+                    <textarea data-field="description" rows="4">${car.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 1:</label>
+                    <input type="url" data-field="link1" value="${car.link1 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 2:</label>
+                    <input type="url" data-field="link2" value="${car.link2 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 3:</label>
+                    <input type="url" data-field="link3" value="${car.link3 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 4:</label>
+                    <input type="url" data-field="link4" value="${car.link4 || ''}">
+                </div>
+            `;
         }
-        
-        function calculateOilChangeStatus(car) {
-            if (!car.nextOilChange || !car.mileage) return { badge: '' };
-            
-            const diffKm = car.nextOilChange - car.mileage;
-            
-            let status = '';
-            let text = '';
-            
-            if (diffKm > 0) {
-                text = `${diffKm} км`;
-                status = diffKm <= 1000 ? 'soon' : 'good';
-            } else {
-                text = 'Пора заменить';
-                status = 'expired';
-            }
-            
-            return {
-                badge: `<span class="status-badge ${status}"><span class="icon">🛢️</span>${text}</span>`
-            };
+
+        function renderLinks(car) {
+            return ['link1', 'link2', 'link3', 'link4']
+                .map((link, index) => {
+                    const url = car[link];
+                    return url ? `
+                        <div class="info-item">
+                            <label>Ссылка ${index + 1}:</label>
+                            <a href="${url}" target="_blank">${url}</a>
+                        </div>
+                    ` : `
+                        <div class="info-item">
+                            <label>Ссылка ${index + 1}:</label>
+                            <span class="no-link">Нет ссылки</span>
+                        </div>
+                    `;
+                })
+                .join('');
         }
-        
-        function calculateTimingBeltStatus(car) {
-            if (!car.nextTimingBelt || !car.mileage) return { badge: '' };
-            
-            const diffKm = car.nextTimingBelt - car.mileage;
-            
-            let status = '';
-            let text = '';
-            
-            if (diffKm > 0) {
-                text = `${diffKm} км`;
-                status = diffKm <= 5000 ? 'soon' : 'good';
-            } else {
-                text = 'Пора заменить';
-                status = 'expired';
-            }
-            
-            return {
-                badge: `<span class="status-badge ${status}"><span class="icon">⏱️</span>${text}</span>`
-            };
-        }
-        
-        // Modal functions
-        function showModal() {
-            document.getElementById('car-modal').style.display = 'flex';
-        }
-        
-        function hideModal() {
-            document.getElementById('car-modal').style.display = 'none';
-            editingCarId = null;
-            resetForm();
-        }
-        
-        function showMileageModal(carIndex) {
-            updatingMileageCarId = carIndex;
-            const car = cars[carIndex];
-            document.getElementById('new-mileage').value = car.mileage || '';
-            document.getElementById('mileage-modal').style.display = 'flex';
-        }
-        
-        function hideMileageModal() {
-            document.getElementById('mileage-modal').style.display = 'none';
-            updatingMileageCarId = null;
-        }
-        
-        function resetForm() {
-            document.getElementById('car-name').value = '';
-            document.getElementById('car-vin').value = '';
-            document.getElementById('car-number').value = '';
-            document.getElementById('car-mileage').value = '';
-            document.getElementById('car-purchase-date').value = '';
-            document.getElementById('car-last-oil-change').value = '';
-            document.getElementById('car-next-oil-change').value = '';
-            document.getElementById('car-last-timing-belt').value = '';
-            document.getElementById('car-next-timing-belt').value = '';
-            document.getElementById('car-insurance-date').value = '';
-            document.getElementById('car-service-date').value = '';
-            document.getElementById('car-notes').value = '';
-        }
-        
-        function populateForm(car) {
-            document.getElementById('car-name').value = car.name || '';
-            document.getElementById('car-vin').value = car.vin || '';
-            document.getElementById('car-number').value = car.number || '';
-            document.getElementById('car-mileage').value = car.mileage || '';
-            document.getElementById('car-purchase-date').value = car.purchaseDate || '';
-            document.getElementById('car-last-oil-change').value = car.lastOilChange || '';
-            document.getElementById('car-next-oil-change').value = car.nextOilChange || '';
-            document.getElementById('car-last-timing-belt').value = car.lastTimingBelt || '';
-            document.getElementById('car-next-timing-belt').value = car.nextTimingBelt || '';
-            document.getElementById('car-insurance-date').value = car.insuranceDate || '';
-            document.getElementById('car-service-date').value = car.serviceDate || '';
-            document.getElementById('car-notes').value = car.notes || '';
-        }
-        
-        // Car management functions
-        function addCar() {
-            editingCarId = null;
-            document.getElementById('modal-title').textContent = 'Добавить автомобиль';
-            resetForm();
-            showModal();
-        }
-        
-        function editCar(index) {
-            editingCarId = index;
+
+        // Utility Functions
+        function showCarDetails(index) {
+            currentCarIndex = index;
             const car = cars[index];
-            document.getElementById('modal-title').textContent = 'Редактировать автомобиль';
-            populateForm(car);
-            showModal();
-            triggerHapticFeedback('light');
+            renderCarInfo(car);
+            viewCarModal.style.display = 'block';
         }
-        
-        async function deleteCar(index) {
-            try {
-                triggerHapticFeedback('heavy');
-                cars.splice(index, 1);
+
+        function showDeleteConfirmation() {
+            confirmationDialog.style.display = 'block';
+        }
+
+        function copyVIN(vin) {
+            navigator.clipboard.writeText(vin).then(() => {
+                showToast('VIN скопирован');
+                tg.HapticFeedback.notificationOccurred('success');
+            }).catch(err => {
+                console.error('Failed to copy VIN:', err);
+                showToast('Ошибка при копировании VIN');
+                tg.HapticFeedback.notificationOccurred('error');
+            });
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('ru-RU');
+        }
+
+        function formatTimeRemaining(dateString) {
+            const end = new Date(dateString);
+            const now = new Date();
+            const diff = end - now;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            return `${days} дн.`;
+        }
+
+        function formatMileageRemaining(currentMileage, lastChangeMileage) {
+            const remaining = OIL_CHANGE_INTERVAL - (currentMileage - lastChangeMileage);
+            return remaining > 0 ? remaining : 0;
+        }
+
+        function isDateWarning(dateString) {
+            const end = new Date(dateString);
+            const now = new Date();
+            const diff = end - now;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            return days <= WARNING_DAYS;
+        }
+
+        function editDescription(index) {
+            const car = cars[index];
+            const description = car.description || '';
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = description;
+            textarea.rows = 4;
+            textarea.className = 'description-edit';
+            
+            const descriptionDiv = viewCarModal.querySelector('.description-text');
+            const editButton = viewCarModal.querySelector('.edit-description-button');
+            
+            descriptionDiv.replaceWith(textarea);
+            
+            const saveButton = document.createElement('button');
+            saveButton.innerHTML = '<i class="fas fa-save"></i> Сохранить';
+            saveButton.className = 'save-description-button';
+            
+            saveButton.addEventListener('click', async () => {
+                car.description = textarea.value;
                 await saveCars();
-            } catch (error) {
-                console.error('Error deleting car:', error);
-            }
-        }
-        
-        async function updateMileage() {
-            try {
-                const newMileage = parseInt(document.getElementById('new-mileage').value);
-                
-                if (isNaN(newMileage) {
-                    alert('Пожалуйста, введите корректный пробег');
-                    return;
-                }
-                
-                const car = cars[updatingMileageCarId];
-                car.mileage = newMileage;
-                
-                if (car.lastOilChange) {
-                    car.nextOilChange = car.lastOilChange + OIL_CHANGE_INTERVAL;
-                }
-                
-                if (car.lastTimingBelt) {
-                    car.nextTimingBelt = car.lastTimingBelt + TIMING_BELT_INTERVAL;
-                }
-                
-                await saveCars();
-                hideMileageModal();
-                triggerHapticFeedback('success');
-            } catch (error) {
-                console.error('Error updating mileage:', error);
-            }
-        }
-        
-        async function saveCar() {
-            try {
-                const car = {
-                    name: document.getElementById('car-name').value,
-                    vin: document.getElementById('car-vin').value,
-                    number: document.getElementById('car-number').value,
-                    mileage: parseInt(document.getElementById('car-mileage').value) || 0,
-                    purchaseDate: document.getElementById('car-purchase-date').value,
-                    lastOilChange: parseInt(document.getElementById('car-last-oil-change').value) || 0,
-                    nextOilChange: parseInt(document.getElementById('car-next-oil-change').value) || 0,
-                    lastTimingBelt: parseInt(document.getElementById('car-last-timing-belt').value) || 0,
-                    nextTimingBelt: parseInt(document.getElementById('car-next-timing-belt').value) || 0,
-                    insuranceDate: document.getElementById('car-insurance-date').value,
-                    serviceDate: document.getElementById('car-service-date').value,
-                    notes: document.getElementById('car-notes').value
-                };
-                
-                // Auto-calculate next service intervals
-                if (car.lastOilChange) {
-                    car.nextOilChange = car.lastOilChange + OIL_CHANGE_INTERVAL;
-                    document.getElementById('car-next-oil-change').value = car.nextOilChange;
-                }
-                
-                if (car.lastTimingBelt) {
-                    car.nextTimingBelt = car.lastTimingBelt + TIMING_BELT_INTERVAL;
-                    document.getElementById('car-next-timing-belt').value = car.nextTimingBelt;
-                }
-                
-                if (!car.name) {
-                    alert('Пожалуйста, укажите название автомобиля');
-                    return;
-                }
-                
-                if (editingCarId !== null) {
-                    cars[editingCarId] = car;
-                } else {
-                    cars.push(car);
-                }
-                
-                await saveCars();
-                hideModal();
-                triggerHapticFeedback('success');
-            } catch (error) {
-                console.error('Error saving car:', error);
-            }
-        }
-        
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Setup event listeners
-            document.getElementById('add-car-button').addEventListener('click', () => {
-                triggerHapticFeedback('light');
-                addCar();
-            });
-
-            document.getElementById('modal-cancel').addEventListener('click', () => {
-                triggerHapticFeedback('light');
-                hideModal();
-            });
-
-            document.getElementById('modal-save').addEventListener('click', async () => {
-                triggerHapticFeedback('light');
-                await saveCar();
-            });
-
-            document.getElementById('mileage-modal-cancel').addEventListener('click', () => {
-                triggerHapticFeedback('light');
-                hideMileageModal();
-            });
-
-            document.getElementById('mileage-modal-save').addEventListener('click', async () => {
-                triggerHapticFeedback('light');
-                await updateMileage();
+                renderCarInfo(car);
+                showToast('Описание сохранено');
+                tg.HapticFeedback.notificationOccurred('success');
             });
             
-            // Auto-calculate next oil change
-            document.getElementById('car-last-oil-change').addEventListener('input', function() {
-                const lastOilChange = parseInt(this.value);
-                if (!isNaN(lastOilChange)) {
-                    document.getElementById('car-next-oil-change').value = lastOilChange + OIL_CHANGE_INTERVAL;
-                }
-            });
+            editButton.replaceWith(saveButton);
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function formatURL(url) {
+            if (!url) return '';
             
-            // Auto-calculate next timing belt change
-            document.getElementById('car-last-timing-belt').addEventListener('input', function() {
-                const lastTimingBelt = parseInt(this.value);
-                if (!isNaN(lastTimingBelt)) {
-                    document.getElementById('car-next-timing-belt').value = lastTimingBelt + TIMING_BELT_INTERVAL;
-                }
-            });
+            url = url.trim();
+            if (!url) return '';
             
-            // Load cars
-            await loadCars();
+            url = url.replace(/^(https?:\/\/)/, '');
+            
+            if (!url) return '';
+            
+            const fullUrl = `https://${url}`;
+            try {
+                new URL(fullUrl);
+                return fullUrl;
+            } catch {
+                return '';
+            }
+        }
+
+        // Add input event listeners for VIN, plate number, and URL fields
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('vin').addEventListener('input', function(e) {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+            });
+
+            document.getElementById('plate').addEventListener('input', function(e) {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+            });
+
+            ['link1', 'link2', 'link3', 'link4'].forEach(id => {
+                const input = document.getElementById(id);
+                const previewId = `${id}Preview`;
+                
+                let preview = document.getElementById(previewId);
+                if (!preview) {
+                    preview = document.createElement('div');
+                    preview.id = previewId;
+                    preview.className = 'url-preview';
+                    input.parentNode.insertBefore(preview, input.nextSibling);
+                }
+                
+                input.addEventListener('input', function() {
+                    const formattedUrl = formatURL(this.value);
+                    if (formattedUrl) {
+                        preview.textContent = `Будет сохранено как: ${formattedUrl}`;
+                        preview.style.display = 'block';
+                    } else {
+                        preview.style.display = 'none';
+                    }
+                });
+            });
+
+            // Update timers every minute
+            setInterval(() => {
+                renderCarList();
+            }, 60000);
         });
-        
-        // Make functions available globally for inline handlers
-        window.showMileageModal = showMileageModal;
     </script>
 </body>
 </html>
