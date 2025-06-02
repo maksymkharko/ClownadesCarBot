@@ -2,31 +2,444 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Мои авто</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#2481cc">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Clownades">
-    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="src/styles/app1.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            touch-action: manipulation;
+        :root {
+            --background-color: #f5f5f5;
+            --glass-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --accent-color: #2481cc;
+            --accent-red: #ff3b30;
+            --accent-green: #34c759;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --animation-duration: 0.3s;
         }
-        input, textarea {
-            font-size: 16px;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 8px 0;
+        }
+
+        .main-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .add-car-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: transform var(--animation-duration) ease, opacity var(--animation-duration) ease;
+        }
+
+        .add-car-button:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        .car-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .car-item {
+            background: var(--glass-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            position: relative;
+            transform: translateX(0);
+            transition: transform var(--animation-duration) ease, box-shadow var(--animation-duration) ease;
+        }
+
+        .car-item:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .car-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .timer-container {
+            display: grid;
+            gap: 8px;
+        }
+
+        .timer {
+            background: rgba(0, 0, 0, 0.05);
             padding: 12px;
             border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color var(--animation-duration) ease;
+        }
+
+        .timer.warning {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--accent-red);
+        }
+
+        .timer-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .timer-value {
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            opacity: 0;
+            transition: opacity var(--animation-duration) ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 16px;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            margin: 16px auto;
+            transform: translateY(20px);
+            transition: transform var(--animation-duration) ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color var(--animation-duration) ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .modal-buttons button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--animation-duration) ease, opacity var(--animation-duration) ease;
+        }
+
+        .modal-buttons button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .save-button {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .cancel-button {
+            background: #f5f5f5;
+            color: var(--text-primary);
+        }
+
+        .delete-button {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .car-info {
+            margin-top: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .info-item {
+            display: grid;
+            gap: 4px;
+        }
+
+        .info-item label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .vin-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-button {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            padding: 4px;
+            transition: opacity var(--animation-duration) ease;
+        }
+
+        .copy-button:active {
+            opacity: 0.7;
+        }
+
+        .description-text {
+            white-space: pre-wrap;
+            margin: 8px 0;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .edit-description-button {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            padding: 8px 0;
+            text-align: left;
+            transition: opacity var(--animation-duration) ease;
+        }
+
+        .edit-description-button:active {
+            opacity: 0.7;
+        }
+
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity var(--animation-duration) ease;
+        }
+
+        .confirmation-dialog.show {
+            opacity: 1;
+        }
+
+        .dialog-content {
+            background: white;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform var(--animation-duration) ease;
+        }
+
+        .confirmation-dialog.show .dialog-content {
+            transform: scale(1);
+        }
+
+        .dialog-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            opacity: 0;
+            transition: transform var(--animation-duration) ease, opacity var(--animation-duration) ease;
+            z-index: 1200;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .delete-action {
+            position: absolute;
+            right: -80px;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            background: var(--accent-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity var(--animation-duration) ease;
+        }
+
+        .car-item.swiping .delete-action {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--accent-color);
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .empty-state button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--animation-duration) ease, opacity var(--animation-duration) ease;
+        }
+
+        .empty-state button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 12px;
+            }
+
+            .modal-content {
+                margin: 12px;
+                padding: 16px;
+            }
+
+            .car-name {
+                font-size: 16px;
+            }
+
+            .timer-label {
+                font-size: 12px;
+            }
+
+            .modal-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Top Panel -->
         <div class="top-panel">
             <div class="control-buttons">
                 <button class="add-car-button">
@@ -35,10 +448,8 @@
             </div>
         </div>
 
-        <!-- Header -->
         <h1 class="main-title">Мои авто</h1>
 
-        <!-- Car List -->
         <div class="car-list" id="carList">
             <!-- Cars will be added here dynamically -->
         </div>
@@ -51,19 +462,19 @@
             <form id="addCarForm">
                 <div class="form-group">
                     <label for="carName">Название машины*</label>
-                    <input type="text" id="carName" required>
+                    <input type="text" id="carName" required placeholder="Например: Toyota Camry">
                 </div>
                 <div class="form-group">
                     <label for="mileage">Актуальный пробег (км)*</label>
-                    <input type="number" id="mileage" required>
+                    <input type="number" id="mileage" required placeholder="Например: 50000">
                 </div>
                 <div class="form-group">
                     <label for="vin">VIN*</label>
-                    <input type="text" id="vin" required>
+                    <input type="text" id="vin" required placeholder="17-значный номер">
                 </div>
                 <div class="form-group">
                     <label for="plate">Номер машины*</label>
-                    <input type="text" id="plate" required>
+                    <input type="text" id="plate" required placeholder="Например: А123БВ777">
                 </div>
                 <div class="form-group">
                     <label for="purchaseDate">Дата покупки*</label>
@@ -71,11 +482,11 @@
                 </div>
                 <div class="form-group">
                     <label for="lastOilChange">Пробег на последней замене масла (км)*</label>
-                    <input type="number" id="lastOilChange" required>
+                    <input type="number" id="lastOilChange" required placeholder="Например: 45000">
                 </div>
                 <div class="form-group">
                     <label for="lastTimingBelt">Пробег на последней замене ГРМ (км)*</label>
-                    <input type="number" id="lastTimingBelt" required>
+                    <input type="number" id="lastTimingBelt" required placeholder="Например: 40000">
                 </div>
                 <div class="form-group">
                     <label for="insuranceEnd">Дата окончания страховки*</label>
@@ -91,19 +502,19 @@
                 </div>
                 <div class="form-group">
                     <label for="link1">Ссылка 1</label>
-                    <input type="url" id="link1">
+                    <input type="url" id="link1" placeholder="https://...">
                 </div>
                 <div class="form-group">
                     <label for="link2">Ссылка 2</label>
-                    <input type="url" id="link2">
+                    <input type="url" id="link2" placeholder="https://...">
                 </div>
                 <div class="form-group">
                     <label for="link3">Ссылка 3</label>
-                    <input type="url" id="link3">
+                    <input type="url" id="link3" placeholder="https://...">
                 </div>
                 <div class="form-group">
                     <label for="link4">Ссылка 4</label>
-                    <input type="url" id="link4">
+                    <input type="url" id="link4" placeholder="https://...">
                 </div>
                 <div class="modal-buttons">
                     <button type="submit" class="save-button">Сохранить</button>
@@ -167,21 +578,90 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadCars();
-            renderCarList();
             setupEventListeners();
+            setupTouchHandlers();
+            setupKeyboardHandling();
         });
+
+        // Touch handling variables
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let currentSwipeItem = null;
+        const SWIPE_THRESHOLD = 50;
+
+        // Touch Handlers Setup
+        function setupTouchHandlers() {
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchmove', handleTouchMove, { passive: true });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+            const carItem = e.target.closest('.car-item');
+            if (carItem) {
+                currentSwipeItem = carItem;
+                carItem.classList.add('swiping');
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!currentSwipeItem) return;
+            
+            touchEndX = e.touches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            
+            if (diff > 0) { // Swiping left
+                const translateX = Math.max(-80, -diff);
+                currentSwipeItem.style.transform = `translateX(${translateX}px)`;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!currentSwipeItem) return;
+
+            const diff = touchStartX - touchEndX;
+            if (diff > SWIPE_THRESHOLD) {
+                // Trigger haptic feedback
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+                
+                // Show delete confirmation
+                const index = Array.from(carList.children).indexOf(currentSwipeItem);
+                currentCarIndex = index;
+                showDeleteConfirmation();
+            }
+
+            // Reset swipe
+            currentSwipeItem.style.transform = '';
+            currentSwipeItem.classList.remove('swiping');
+            currentSwipeItem = null;
+        }
+
+        // Keyboard Handling
+        function setupKeyboardHandling() {
+            document.addEventListener('click', (e) => {
+                if (!e.target.matches('input, textarea')) {
+                    document.activeElement.blur();
+                }
+            });
+        }
 
         // Event Listeners Setup
         function setupEventListeners() {
-            // Add car button
+            // Add car button with haptic feedback
             document.querySelector('.add-car-button').addEventListener('click', () => {
-                addCarModal.style.display = 'block';
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                showModal(addCarModal);
             });
 
             // Add car form
             addCarForm.addEventListener('submit', handleAddCar);
             addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
-                addCarModal.style.display = 'none';
+                hideModal(addCarModal);
                 addCarForm.reset();
             });
 
@@ -189,20 +669,44 @@
             viewCarModal.querySelector('.edit-button').addEventListener('click', handleEditCar);
             viewCarModal.querySelector('.delete-button').addEventListener('click', showDeleteConfirmation);
             viewCarModal.querySelector('.close-button').addEventListener('click', () => {
-                viewCarModal.style.display = 'none';
+                hideModal(viewCarModal);
             });
 
             // Confirmation dialog
             confirmationDialog.querySelector('.confirm-button').addEventListener('click', handleDeleteCar);
             confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
-                confirmationDialog.style.display = 'none';
+                hideModal(confirmationDialog);
             });
 
             // Close modals when clicking outside
             window.addEventListener('click', (e) => {
-                if (e.target === addCarModal) addCarModal.style.display = 'none';
-                if (e.target === viewCarModal) viewCarModal.style.display = 'none';
+                if (e.target === addCarModal) hideModal(addCarModal);
+                if (e.target === viewCarModal) hideModal(viewCarModal);
             });
+
+            // Add haptic feedback to all buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                });
+            });
+        }
+
+        // Modal handling
+        function showModal(modal) {
+            modal.style.display = 'block';
+            requestAnimationFrame(() => {
+                modal.classList.add('show');
+            });
+        }
+
+        function hideModal(modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
         }
 
         // Car Management Functions
@@ -210,9 +714,11 @@
             try {
                 const data = await tg.CloudStorage.getItem('cars');
                 cars = data ? JSON.parse(data) : [];
+                renderCarList();
             } catch (e) {
                 console.error('Error loading cars:', e);
                 cars = [];
+                showToast('Ошибка загрузки данных');
             }
         }
 
@@ -249,7 +755,7 @@
             await saveCars();
             renderCarList();
             
-            addCarModal.style.display = 'none';
+            hideModal(addCarModal);
             addCarForm.reset();
             showToast('Автомобиль добавлен');
         }
@@ -295,14 +801,28 @@
             await saveCars();
             renderCarList();
             
-            confirmationDialog.style.display = 'none';
-            viewCarModal.style.display = 'none';
+            hideModal(confirmationDialog);
+            hideModal(viewCarModal);
             showToast('Автомобиль удален');
         }
 
         // UI Functions
         function renderCarList() {
             carList.innerHTML = '';
+            
+            if (cars.length === 0) {
+                carList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-car"></i>
+                        <p>У вас пока нет добавленных автомобилей</p>
+                        <button onclick="document.querySelector('.add-car-button').click()">
+                            Добавить автомобиль
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
             cars.forEach((car, index) => {
                 const carElement = createCarElement(car, index);
                 carList.appendChild(carElement);
@@ -328,9 +848,17 @@
                         <div class="timer-value">${formatMileageRemaining(car.mileage, car.lastOilChangeMileage)} км</div>
                     </div>
                 </div>
+                <div class="delete-action">
+                    <i class="fas fa-trash"></i>
+                </div>
             `;
 
-            div.addEventListener('click', () => showCarDetails(index));
+            div.addEventListener('click', () => {
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                showCarDetails(index);
+            });
             return div;
         }
 
@@ -470,11 +998,11 @@
             currentCarIndex = index;
             const car = cars[index];
             renderCarInfo(car);
-            viewCarModal.style.display = 'block';
+            showModal(viewCarModal);
         }
 
         function showDeleteConfirmation() {
-            confirmationDialog.style.display = 'block';
+            showModal(confirmationDialog);
         }
 
         function copyVIN(vin) {
