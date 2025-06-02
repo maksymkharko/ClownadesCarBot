@@ -889,16 +889,88 @@
         }
         
         // Initialize
-        function init() {
-            tg.expand();
-            tg.enableClosingConfirmation();
-            setupEventListeners();
-            loadCars();
+        async function init() {
+            try {
+                console.log('Initializing app...');
+                tg.expand();
+                tg.enableClosingConfirmation();
+                
+                // Wait for Telegram WebApp to be ready
+                if (!tg.isReady) {
+                    console.log('Waiting for Telegram WebApp to be ready...');
+                    await new Promise(resolve => {
+                        tg.onEvent('viewportChanged', resolve);
+                    });
+                }
+                
+                console.log('Telegram WebApp is ready');
+                setupEventListeners();
+                await loadCars();
+                console.log('Initialization complete');
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                alert('Ошибка инициализации приложения');
+            }
         }
-        
+
+        // Load cars from Telegram Cloud Storage
+        async function loadCars() {
+            try {
+                console.log('Loading cars from CloudStorage...');
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available');
+                }
+                
+                const data = await tg.CloudStorage.getItem('cars');
+                console.log('Raw data from CloudStorage:', data);
+                
+                if (data) {
+                    try {
+                        cars = JSON.parse(data);
+                        console.log('Parsed cars data:', cars);
+                    } catch (parseError) {
+                        console.error('Error parsing cars data:', parseError);
+                        cars = [];
+                    }
+                } else {
+                    console.log('No data in CloudStorage, initializing empty array');
+                    cars = [];
+                }
+                
+                renderCars();
+            } catch (error) {
+                console.error('Error loading cars:', error);
+                alert('Ошибка загрузки данных');
+                cars = [];
+                renderCars();
+            }
+        }
+
+        async function saveCars() {
+            try {
+                console.log('Saving cars to CloudStorage...');
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available');
+                }
+                
+                const data = JSON.stringify(cars);
+                console.log('Data to save:', data);
+                
+                await tg.CloudStorage.setItem('cars', data);
+                console.log('Data saved successfully');
+                renderCars();
+            } catch (error) {
+                console.error('Error saving cars:', error);
+                alert('Ошибка сохранения данных');
+            }
+        }
+
         // Start the app
-        tg.ready();
-        init();
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting app...');
+            tg.ready();
+            init();
+        });
 
         // Adapt theme to Telegram
         function adaptTheme() {
@@ -975,28 +1047,6 @@
         }
 
         // Car Management Functions
-        async function loadCars() {
-            try {
-                const data = await tg.CloudStorage.getItem('cars');
-                cars = data ? JSON.parse(data) : [];
-                renderCars();
-            } catch (error) {
-                console.error('Error loading cars:', error);
-                cars = [];
-                renderCars();
-            }
-        }
-
-        async function saveCars() {
-            try {
-                await tg.CloudStorage.setItem('cars', JSON.stringify(cars));
-                renderCars();
-            } catch (error) {
-                console.error('Error saving cars:', error);
-                alert('Ошибка сохранения данных');
-            }
-        }
-
         async function handleAddCar(e) {
             e.preventDefault();
             
