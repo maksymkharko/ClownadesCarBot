@@ -844,7 +844,6 @@
             <a href="https://t.me/clownades" class="author-link" target="_blank">@clownades</a>
             <button class="clear-storage-button" onclick="clearStorage()">
                 <i class="fas fa-trash"></i>
-                Очистить хранилище
             </button>
         </div>
     </div>
@@ -903,7 +902,7 @@
         // Initialize
         async function init() {
             try {
-                console.log('Initializing app...');
+                console.log('=== Initializing app ===');
                 console.log('Telegram WebApp version:', tg.version);
                 console.log('CloudStorage available:', !!tg.CloudStorage);
                 
@@ -932,6 +931,9 @@
                     throw new Error('CloudStorage is not available');
                 }
                 
+                // Clear any existing data on initialization
+                await clearStorage();
+                
                 setupEventListeners();
                 await loadCars();
                 console.log('Initialization complete');
@@ -944,10 +946,21 @@
         // Load cars from Telegram Cloud Storage
         async function loadCars() {
             try {
-                console.log('Loading cars from CloudStorage...');
+                console.log('=== Loading cars from CloudStorage ===');
+                console.log('User ID:', userId);
                 console.log('Current cars array:', cars);
                 
                 const storageKey = `cars_${userId}`;
+                console.log('Storage key:', storageKey);
+                
+                // First, try to remove any existing data to ensure clean state
+                try {
+                    await tg.CloudStorage.removeItem(storageKey);
+                    console.log('Cleared existing storage data');
+                } catch (error) {
+                    console.log('No existing data to clear or error clearing:', error);
+                }
+                
                 const data = await tg.CloudStorage.getItem(storageKey);
                 console.log('Raw data from CloudStorage:', data);
                 
@@ -1583,17 +1596,36 @@
         async function clearStorage() {
             try {
                 if (confirm('Вы уверены, что хотите удалить все данные? Это действие нельзя отменить.')) {
-                    console.log('Clearing storage...');
+                    console.log('=== Clearing storage ===');
+                    console.log('User ID:', userId);
+                    
                     const storageKey = `cars_${userId}`;
+                    console.log('Storage key:', storageKey);
+                    
+                    // Remove from CloudStorage
                     await tg.CloudStorage.removeItem(storageKey);
+                    console.log('Removed data from CloudStorage');
+                    
+                    // Clear local array
                     cars = [];
-                    renderCars();
-                    showToast('Хранилище очищено');
-                    triggerHapticFeedback('success');
+                    console.log('Cleared local cars array');
+                    
+                    // Verify storage is empty
+                    const verifyData = await tg.CloudStorage.getItem(storageKey);
+                    console.log('Verification - data in storage:', verifyData);
+                    
+                    if (!verifyData) {
+                        console.log('Storage cleared successfully');
+                        renderCars();
+                        showToast('Хранилище очищено');
+                        triggerHapticFeedback('success');
+                    } else {
+                        throw new Error('Storage not cleared properly');
+                    }
                 }
             } catch (error) {
                 console.error('Error clearing storage:', error);
-                alert('Ошибка при очистке хранилища');
+                alert('Ошибка при очистке хранилища: ' + error.message);
             }
         }
     </script>
