@@ -475,6 +475,24 @@
             box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
         }
 
+        .edit-button {
+            background: rgba(10, 132, 255, 0.3) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid rgba(10, 132, 255, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(10, 132, 255, 0.2);
+        }
+
+        .edit-button:hover {
+            background: rgba(10, 132, 255, 0.4) !important;
+            border-color: rgba(10, 132, 255, 0.5) !important;
+            box-shadow: 0 6px 16px rgba(10, 132, 255, 0.3);
+        }
+
+        .edit-button:active {
+            background: rgba(10, 132, 255, 0.5) !important;
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
+        }
+
         .cancel-button {
             background: rgba(30, 34, 42, 0.5);
             color: var(--text-primary) !important;
@@ -862,15 +880,22 @@
         tg.ready();
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCars();
-            renderCarList();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCars();
             setupEventListeners();
             adaptTheme();
         });
 
         // Adapt theme to Telegram
         function adaptTheme() {
+            document.documentElement.style.setProperty('--background-color', tg.themeParams.bg_color || '#0a0a0c');
+            document.documentElement.style.setProperty('--glass-border', tg.themeParams.secondary_bg_color || 'rgba(255, 255, 255, 0.07)');
+            document.documentElement.style.setProperty('--text-primary', tg.themeParams.text_color || '#ffffff');
+            document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || 'rgba(255, 255, 255, 0.65)');
+            document.documentElement.style.setProperty('--accent-blue', tg.themeParams.button_color || '#0A84FF');
+            document.documentElement.style.setProperty('--accent-red', tg.themeParams.destructive_text_color || '#FF453A');
+            document.documentElement.style.setProperty('--input-background', tg.themeParams.secondary_bg_color || 'rgba(30, 34, 42, 0.5)');
+
             tg.onEvent('themeChanged', () => {
                 document.documentElement.style.setProperty('--background-color', tg.themeParams.bg_color || '#0a0a0c');
                 document.documentElement.style.setProperty('--glass-border', tg.themeParams.secondary_bg_color || 'rgba(255, 255, 255, 0.07)');
@@ -943,7 +968,9 @@
                 renderCarList();
             } catch (e) {
                 console.error('Error loading cars:', e);
+                showToast('Ошибка при загрузке данных');
                 cars = [];
+                renderCarList();
             }
         }
 
@@ -966,7 +993,7 @@
                 plate: document.getElementById('plate').value.toUpperCase(),
                 purchaseDate: document.getElementById('purchaseDate').value,
                 lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
-                lastSpacingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
+                lastTimingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
                 insuranceEndDate: document.getElementById('insuranceEnd').value,
                 maintenanceEndDate: document.getElementById('maintenanceEnd').value,
                 description: document.getElementById('description').value || '',
