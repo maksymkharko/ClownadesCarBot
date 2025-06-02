@@ -395,60 +395,45 @@
 
         const tg = window.Telegram.WebApp;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            init();
-        });
-
-        // Event Listeners Setup
-        function setupEventListeners() {
-            // Add car button
-            document.querySelector('.add-car-button').addEventListener('click', () => {
-                showModal('addCarModal');
-            });
-
-            // Add car form
-            addCarForm.addEventListener('submit', handleAddCar);
-            document.querySelectorAll('.cancel-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    closeModal('addCarModal');
-                    closeModal('viewCarModal');
-                    closeModal('confirmationDialog');
+        // Cloud Storage Functions
+        async function getStorageValue(key) {
+            return new Promise((resolve, reject) => {
+                tg.sendData(JSON.stringify({
+                    method: 'getStorageValues',
+                    params: {
+                        keys: [key]
+                    }
+                }));
+                
+                window.addEventListener('message', function handler(event) {
+                    if (event.data && event.data.method === 'getStorageValues') {
+                        window.removeEventListener('message', handler);
+                        if (event.data.result && event.data.result[key]) {
+                            resolve(event.data.result[key]);
+                        } else {
+                            resolve(null);
+                        }
+                    }
                 });
             });
+        }
 
-            // View car modal buttons
-            viewCarModal.querySelector('.edit-button').addEventListener('click', handleEditCar);
-            viewCarModal.querySelector('.delete-button').addEventListener('click', showDeleteConfirmation);
-            viewCarModal.querySelector('.close-button').addEventListener('click', () => {
-                closeModal('viewCarModal');
-            });
-
-            // Confirmation dialog
-            confirmationDialog.querySelector('.confirm-button').addEventListener('click', handleDeleteCar);
-            confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
-                closeModal('confirmationDialog');
-            });
-
-            // Close modals when clicking outside
-            window.addEventListener('click', (e) => {
-                if (e.target === addCarModal) closeModal('addCarModal');
-                if (e.target === viewCarModal) closeModal('viewCarModal');
-            });
-
-            // Add input event listeners for uppercase conversion
-            document.getElementById('vin').addEventListener('input', function(e) {
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.toUpperCase();
-                this.setSelectionRange(start, end);
-            });
-
-            document.getElementById('plate').addEventListener('input', function(e) {
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.toUpperCase();
-                this.setSelectionRange(start, end);
+        async function setStorageValue(key, value) {
+            return new Promise((resolve, reject) => {
+                tg.sendData(JSON.stringify({
+                    method: 'setStorageValue',
+                    params: {
+                        key: key,
+                        value: value
+                    }
+                }));
+                
+                window.addEventListener('message', function handler(event) {
+                    if (event.data && event.data.method === 'setStorageValue') {
+                        window.removeEventListener('message', handler);
+                        resolve();
+                    }
+                });
             });
         }
 
@@ -456,7 +441,7 @@
         async function loadCars() {
             try {
                 const storageKey = `cars_${userId}`;
-                const data = await tg.CloudStorage.getItem(storageKey);
+                const data = await getStorageValue(storageKey);
                 cars = data ? JSON.parse(data) : [];
                 renderCars();
             } catch (error) {
@@ -470,7 +455,7 @@
         async function saveCars() {
             try {
                 const storageKey = `cars_${userId}`;
-                await tg.CloudStorage.setItem(storageKey, JSON.stringify(cars));
+                await setStorageValue(storageKey, JSON.stringify(cars));
                 renderCars();
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
@@ -708,13 +693,60 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
+        // Event Listeners Setup
+        function setupEventListeners() {
+            // Add car button
+            document.querySelector('.add-car-button').addEventListener('click', () => {
+                showModal('addCarModal');
+            });
+
+            // Add car form
+            addCarForm.addEventListener('submit', handleAddCar);
+            document.querySelectorAll('.cancel-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    closeModal('addCarModal');
+                    closeModal('viewCarModal');
+                    closeModal('confirmationDialog');
+                });
+            });
+
+            // View car modal buttons
+            viewCarModal.querySelector('.edit-button').addEventListener('click', handleEditCar);
+            viewCarModal.querySelector('.delete-button').addEventListener('click', showDeleteConfirmation);
+            viewCarModal.querySelector('.close-button').addEventListener('click', () => {
+                closeModal('viewCarModal');
+            });
+
+            // Confirmation dialog
+            confirmationDialog.querySelector('.confirm-button').addEventListener('click', handleDeleteCar);
+            confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
+                closeModal('confirmationDialog');
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === addCarModal) closeModal('addCarModal');
+                if (e.target === viewCarModal) closeModal('viewCarModal');
+            });
+
+            // Add input event listeners for uppercase conversion
+            document.getElementById('vin').addEventListener('input', function(e) {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+            });
+
+            document.getElementById('plate').addEventListener('input', function(e) {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+            });
+        }
+
         // Start the application
         async function init() {
-            if (!tg.CloudStorage) {
-                showToast('Cloud Storage не поддерживается в этой версии Telegram', 'error');
-                return;
-            }
-
             userId = tg.initDataUnsafe?.user?.id;
             if (!userId) {
                 showToast('Ошибка: ID пользователя не найден', 'error');
