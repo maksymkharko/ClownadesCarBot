@@ -884,7 +884,20 @@
         // Haptic feedback
         function triggerHapticFeedback(type = 'light') {
             if (tg.isVersionAtLeast('6.1')) {
-                tg.HapticFeedback.impactOccurred(type);
+                // Map our custom types to Telegram's valid impact styles
+                const impactStyle = {
+                    'light': 'light',
+                    'medium': 'medium',
+                    'heavy': 'heavy',
+                    'success': 'medium',
+                    'error': 'heavy'
+                }[type] || 'light';
+                
+                try {
+                    tg.HapticFeedback.impactOccurred(impactStyle);
+                } catch (error) {
+                    console.log('Haptic feedback error:', error);
+                }
             }
         }
         
@@ -892,8 +905,6 @@
         async function init() {
             try {
                 console.log('Initializing app...');
-                tg.expand();
-                tg.enableClosingConfirmation();
                 
                 // Wait for Telegram WebApp to be ready
                 if (!tg.isReady) {
@@ -904,6 +915,14 @@
                 }
                 
                 console.log('Telegram WebApp is ready');
+                tg.expand();
+                tg.enableClosingConfirmation();
+                
+                // Initialize CloudStorage
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available');
+                }
+                
                 setupEventListeners();
                 await loadCars();
                 console.log('Initialization complete');
@@ -917,17 +936,14 @@
         async function loadCars() {
             try {
                 console.log('Loading cars from CloudStorage...');
-                if (!tg.CloudStorage) {
-                    throw new Error('CloudStorage is not available');
-                }
-                
                 const data = await tg.CloudStorage.getItem('cars');
                 console.log('Raw data from CloudStorage:', data);
                 
                 if (data) {
                     try {
-                        cars = JSON.parse(data);
-                        console.log('Parsed cars data:', cars);
+                        const parsedData = JSON.parse(data);
+                        console.log('Parsed cars data:', parsedData);
+                        cars = Array.isArray(parsedData) ? parsedData : [];
                     } catch (parseError) {
                         console.error('Error parsing cars data:', parseError);
                         cars = [];
@@ -949,15 +965,20 @@
         async function saveCars() {
             try {
                 console.log('Saving cars to CloudStorage...');
-                if (!tg.CloudStorage) {
-                    throw new Error('CloudStorage is not available');
-                }
-                
                 const data = JSON.stringify(cars);
                 console.log('Data to save:', data);
                 
                 await tg.CloudStorage.setItem('cars', data);
                 console.log('Data saved successfully');
+                
+                // Verify the save
+                const savedData = await tg.CloudStorage.getItem('cars');
+                console.log('Verified saved data:', savedData);
+                
+                if (savedData !== data) {
+                    throw new Error('Data verification failed');
+                }
+                
                 renderCars();
             } catch (error) {
                 console.error('Error saving cars:', error);
@@ -966,10 +987,10 @@
         }
 
         // Start the app
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, starting app...');
-            tg.ready();
-            init();
+            await tg.ready();
+            await init();
         });
 
         // Adapt theme to Telegram
