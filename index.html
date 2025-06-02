@@ -1,155 +1,151 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Clownades Car Bot</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0 16px 80px; /* место под футер */
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 10;
-    }
-    .car-card {
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      transition: all 0.3s ease;
-    }
-    .indicator {
-      font-size: 0.9em;
-      color: #555;
-    }
-    .car-card strong {
-      font-size: 1.2em;
-    }
-    button#addCarBtn {
-      font-size: 1.5em;
-      padding: 0 12px;
-      cursor: pointer;
-    }
-    footer {
-      position: fixed;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 0.8em;
-      color: #888;
-      z-index: 100;
-    }
-    footer a {
-      color: inherit;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мои авто</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@telegram-apps/sdk@latest/dist/index.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Clownades">
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="stylesheet" href="src/styles/app1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <header>
-    <h2>Мои авто</h2>
-    <button id="addCarBtn">+</button>
-  </header>
+    <div class="app-container">
+        <!-- Top Panel -->
+        <div class="top-panel">
+            <div class="control-buttons">
+                <button class="add-car-button">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
 
-  <div id="carList"></div>
+        <!-- Header -->
+        <h1 class="main-title">Мои авто</h1>
 
-  <footer>
-    Разработано <a href="https://t.me/clownades" target="_blank">@clownades</a>
-  </footer>
+        <!-- Car List -->
+        <div class="car-list" id="carList">
+            <!-- Cars will be added here dynamically -->
+        </div>
+    </div>
 
-  <script>
-    let cloudStorage;
-    let userId;
+    <!-- Add Car Modal -->
+    <div class="modal" id="addCarModal">
+        <div class="modal-content">
+            <h2>Добавить автомобиль</h2>
+            <form id="addCarForm">
+                <div class="form-group">
+                    <label for="carName">Название машины*</label>
+                    <input type="text" id="carName" required>
+                </div>
+                <div class="form-group">
+                    <label for="mileage">Актуальный пробег (км)*</label>
+                    <input type="number" id="mileage" required>
+                </div>
+                <div class="form-group">
+                    <label for="vin">VIN*</label>
+                    <input type="text" id="vin" required>
+                </div>
+                <div class="form-group">
+                    <label for="plate">Номер машины*</label>
+                    <input type="text" id="plate" required>
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Дата покупки*</label>
+                    <input type="date" id="purchaseDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastOilChange">Пробег на последней замене масла (км)*</label>
+                    <input type="number" id="lastOilChange" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastTimingBelt">Пробег на последней замене ГРМ (км)*</label>
+                    <input type="number" id="lastTimingBelt" required>
+                </div>
+                <div class="form-group">
+                    <label for="insuranceEnd">Дата окончания страховки*</label>
+                    <input type="date" id="insuranceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="maintenanceEnd">Дата окончания ТО*</label>
+                    <input type="date" id="maintenanceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <textarea id="description" rows="4" placeholder="Добавьте любую дополнительную информацию"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="link1">Ссылка 1</label>
+                    <input type="url" id="link1">
+                </div>
+                <div class="form-group">
+                    <label for="link2">Ссылка 2</label>
+                    <input type="url" id="link2">
+                </div>
+                <div class="form-group">
+                    <label for="link3">Ссылка 3</label>
+                    <input type="url" id="link3">
+                </div>
+                <div class="form-group">
+                    <label for="link4">Ссылка 4</label>
+                    <input type="url" id="link4">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="save-button">Сохранить</button>
+                    <button type="button" class="cancel-button">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    function renderCars() {
-      const carListEl = document.getElementById("carList");
-      carListEl.innerHTML = "";
+    <!-- View/Edit Car Modal -->
+    <div class="modal" id="viewCarModal">
+        <div class="modal-content">
+            <h2>Информация об автомобиле</h2>
+            <div class="car-info">
+                <!-- Car info will be populated dynamically -->
+            </div>
+            <div class="modal-buttons">
+                <button class="edit-button">Редактировать</button>
+                <button class="delete-button">Удалить</button>
+                <button class="close-button">Закрыть</button>
+            </div>
+        </div>
+    </div>
 
-      cloudStorage.getItem("cars").then(raw => {
-        const cars = JSON.parse(raw || "[]");
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="dialog-content">
+            <p>Вы уверены, что хотите удалить этот автомобиль?</p>
+            <div class="dialog-buttons">
+                <button class="confirm-button">Удалить</button>
+                <button class="cancel-button">Отмена</button>
+            </div>
+        </div>
+    </div>
 
-        cars.forEach((car, index) => {
-          const div = document.createElement("div");
-          div.className = "car-card";
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
 
-          const kmToOil = 10000 - (car.currentMileage - car.lastOilChange);
-          const daysToInsurance = daysBetween(new Date(), new Date(car.insuranceEnd));
-          const daysToTech = daysBetween(new Date(), new Date(car.techEnd));
-
-          div.innerHTML = `
-            <strong>${car.name}</strong><br>
-            <div style="font-size: 1.4em">${car.currentMileage} км</div>
-            <div class="indicator">Масло: ${kmToOil} км</div>
-            <div class="indicator">Страховка: ${daysToInsurance} дн.</div>
-            <div class="indicator">ТО: ${daysToTech} дн.</div>
-          `;
-
-          // Удаление при клике по карточке (временно)
-          div.onclick = () => {
-            if (confirm(`Удалить автомобиль ${car.name}?`)) {
-              cars.splice(index, 1);
-              cloudStorage.setItem("cars", JSON.stringify(cars));
-              renderCars();
-            }
-          };
-
-          carListEl.appendChild(div);
-        });
-      });
-    }
-
-    function daysBetween(d1, d2) {
-      return Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
-    }
-
-    async function addCar() {
-      let raw = await cloudStorage.getItem("cars");
-      let cars = JSON.parse(raw || "[]");
-
-      if (cars.length >= 10) {
-        alert("Максимум 10 авто");
-        return;
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      const newCar = {
-        name: "Без названия",
-        currentMileage: 0,
-        lastOilChange: 0,
-        insuranceEnd: today,
-        techEnd: today
-      };
-
-      cars.push(newCar);
-      await cloudStorage.setItem("cars", JSON.stringify(cars));
-      renderCars();
-    }
-
-    window.onload = () => {
-      if (window.Telegram?.WebApp) {
-        const telegram = window.Telegram.WebApp;
-        telegram.ready();
-        telegram.expand();
-
-        cloudStorage = telegram.cloudStorage;
-        userId = telegram.initDataUnsafe?.user?.id;
-
-        document.getElementById("addCarBtn").onclick = addCar;
-        renderCars();
-      } else {
-        alert("Открой через Telegram Mini App");
-      }
-    };
-  </script>
+    <script src="src/scripts/app1.js"></script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("service-worker.js")
+                    .then((registration) => {
+                        console.log("ServiceWorker registration successful");
+                    })
+                    .catch((err) => {
+                        console.log("ServiceWorker registration failed: ", err);
+                    });
+            });
+        }
+    </script>
 </body>
-</html>
+</html> 
