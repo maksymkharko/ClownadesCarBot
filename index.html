@@ -3,709 +3,771 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarCare</title>
+    <title>Мои Авто</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
+            /* Variables for Telegram theme adaptation */
             --bg-color: var(--tg-theme-bg-color, #ffffff);
             --text-color: var(--tg-theme-text-color, #000000);
-            --hint-color: var(--tg-theme-hint-color, #707579);
-            --link-color: var(--tg-theme-link-color, #3390ec);
-            --button-color: var(--tg-theme-button-color, #3390ec);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+            --link-color: var(--tg-theme-link-color, #2481cc);
+            --button-color: var(--tg-theme-button-color, #2481cc);
             --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            --card-bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --red-color: var(--tg-theme-destructive-text-color, #ff3b30);
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: all 0.3s ease;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
-        
-        .container {
-            padding: 16px;
-            padding-bottom: 60px;
+
+        .screen {
+            display: none; /* Hidden by default */
+            flex-grow: 1;
+            flex-direction: column;
         }
-        
+
+        .screen.active {
+            display: flex; /* Shown when active */
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px;
+            background-color: var(--card-bg-color);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .header .left-btn, .header .right-btn {
+            width: 60px; /* To allow h1 to be centered */
+            text-align: center;
+        }
+        .header .left-btn button, .header .right-btn button {
+            background: none;
+            border: none;
+            color: var(--link-color);
+            cursor: pointer;
+            padding: 0;
+            font-size: 16px;
+        }
+        .header .right-btn button.add-button {
+            font-size: 30px;
+            line-height: 1;
+        }
+
+        .car-list-content {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .car-card {
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease-out; /* For click effect */
+        }
+
+        .car-card:active {
+            transform: translateY(2px); /* Slight press effect */
+        }
+
+        .car-card-content {
+            flex-grow: 1;
+            padding-right: 80px; /* Space for delete button */
+        }
+
+        .car-card h2 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .car-card .mileage {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .car-card .indicators p {
+            margin: 3px 0;
+            font-size: 14px;
+            color: var(--hint-color);
+        }
+
+        .car-card .indicator-danger {
+            color: var(--red-color);
+            font-weight: 500;
+        }
+
+        /* Styles for swipe to delete */
+        .delete-button-wrapper {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 70px;
+            background-color: var(--red-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .car-card.swiped .delete-button-wrapper {
+            transform: translateX(0);
+        }
+
+        .delete-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Car Details Form */
+        .car-details-form {
+            flex-grow: 1;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+
+        .form-section {
             margin-bottom: 20px;
         }
-        
-        .title {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
-        .add-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--button-color);
-            color: var(--button-text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .car-card {
-            background-color: var(--secondary-bg-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            transition: transform 0.2s ease;
-        }
-        
-        .car-card:active {
-            transform: scale(0.98);
-        }
-        
-        .car-name {
-            font-weight: 600;
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-        
-        .car-mileage {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        .indicators {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .indicator {
-            font-size: 14px;
+
+        .form-section h3 {
+            font-size: 16px;
             color: var(--hint-color);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
         }
-        
-        .indicator.warning {
-            color: #ff6b6b;
-        }
-        
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--bg-color);
-            padding: 12px 16px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--hint-color);
-            border-top: 1px solid var(--secondary-bg-color);
-        }
-        
-        .footer a {
-            color: var(--link-color);
-            text-decoration: none;
-        }
-        
-        /* Car detail page styles */
-        .back-btn {
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 15px;
         }
-        
-        label {
+
+        .form-group label {
             display: block;
-            margin-bottom: 6px;
             font-size: 14px;
+            margin-bottom: 5px;
             color: var(--hint-color);
         }
-        
-        input, textarea {
-            width: 100%;
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group textarea {
+            width: calc(100% - 20px);
             padding: 10px;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            border: 1px solid var(--secondary-bg-color);
-            background-color: var(--secondary-bg-color);
+            background-color: var(--card-bg-color);
             color: var(--text-color);
             font-size: 16px;
             box-sizing: border-box;
         }
-        
-        textarea {
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--link-color);
+        }
+
+        .form-group textarea {
             min-height: 80px;
             resize: vertical;
         }
-        
-        .copy-btn {
+
+        .input-with-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-with-button input {
+            flex-grow: 1;
+        }
+
+        .copy-button, .update-button {
             background-color: var(--button-color);
             color: var(--button-text-color);
             border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            margin-left: 8px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .links-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 16px;
-        }
-        
-        .link-item {
-            background-color: var(--secondary-bg-color);
             border-radius: 8px;
-            padding: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .copy-button:active, .update-button:active {
+            opacity: 0.8;
+        }
+
+        .link-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .link-slot input[type="text"] {
+            flex-grow: 1;
+        }
+
+        .link-slot .link-label {
+            width: 80px;
+            font-size: 14px;
+            color: var(--hint-color);
+            white-space: nowrap;
+        }
+
+        .footer {
+            padding: 15px;
             text-align: center;
+            font-size: 12px;
+            color: var(--hint-color);
+            background-color: var(--card-bg-color);
+            border-top: 1px solid var(--border-color);
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            box-sizing: border-box;
         }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease forwards;
-        }
-        
-        .page {
-            display: none;
-        }
-        
-        .page.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
+
+        .footer a {
+            color: var(--link-color);
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <!-- Main Page -->
-    <div class="container page active" id="main-page">
+
+    <div id="mainScreen" class="screen active">
         <div class="header">
-            <div class="title">Мои автомобили</div>
-            <div class="add-btn" id="add-car-btn">+</div>
+            <div class="left-btn"></div>
+            <h1>Мои Авто</h1>
+            <div class="right-btn">
+                <button class="add-button" id="addCarButton">+</button>
+            </div>
         </div>
-        
-        <div id="cars-list">
-            <!-- Cars will be added here dynamically -->
+
+        <div class="car-list-content" id="carList">
+            </div>
+
+        <div class="footer">
+            Разработано <a href="https://t.me/clownades" target="_blank">@clownades</a>
         </div>
     </div>
-    
-    <!-- Add/Edit Car Page -->
-    <div class="container page" id="edit-page">
+
+    <div id="carDetailsScreen" class="screen">
         <div class="header">
-            <div class="back-btn" id="back-btn">←</div>
-            <div class="title" id="edit-title">Новый автомобиль</div>
-            <div style="width: 40px;"></div>
-        </div>
-        
-        <div class="form-group">
-            <label>Название</label>
-            <input type="text" id="car-name" placeholder="Например: Моя Лада">
-        </div>
-        
-        <div class="form-group">
-            <label>VIN</label>
-            <div style="display: flex; align-items: center;">
-                <input type="text" id="car-vin" placeholder="Введите VIN">
-                <button class="copy-btn" id="copy-vin-btn">Копировать</button>
+            <div class="left-btn">
+                <button class="back-button" id="backButton">Назад</button>
             </div>
+            <h1 id="carDetailsHeader">Новый Авто</h1>
+            <div class="right-btn"></div>
         </div>
-        
-        <div class="form-group">
-            <label>Госномер</label>
-            <div style="display: flex; align-items: center;">
-                <input type="text" id="car-plate" placeholder="Введите номер">
-                <button class="copy-btn" id="copy-plate-btn">Копировать</button>
+
+        <form class="car-details-form" id="carDetailsForm">
+            <input type="hidden" id="currentCarId" value="">
+
+            <div class="form-section">
+                <h3>Основное</h3>
+                <div class="form-group">
+                    <label for="carName">Название авто:</label>
+                    <input type="text" id="carName" name="name" placeholder="Введите название" required>
+                </div>
+                <div class="form-group">
+                    <label for="vin">VIN:</label>
+                    <div class="input-with-button">
+                        <input type="text" id="vin" name="vin" placeholder="Введите VIN">
+                        <button type="button" class="copy-button" id="copyVin">Копировать</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="plateNumber">Госномер:</label>
+                    <div class="input-with-button">
+                        <input type="text" id="plateNumber" name="plateNumber" placeholder="Введите госномер">
+                        <button type="button" class="copy-button" id="copyPlateNumber">Копировать</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Дата покупки:</label>
+                    <input type="date" id="purchaseDate" name="purchaseDate">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Дата покупки</label>
-            <input type="date" id="car-purchase-date">
-        </div>
-        
-        <div class="form-group">
-            <label>Текущий пробег (км)</label>
-            <div style="display: flex; align-items: center;">
-                <input type="number" id="car-mileage" placeholder="Текущий пробег">
-                <button class="copy-btn" id="update-mileage-btn">Обновить</button>
+
+            <div class="form-section">
+                <h3>Пробеги</h3>
+                <div class="form-group">
+                    <label for="currentMileage">Текущий пробег (км):</label>
+                    <div class="input-with-button">
+                        <input type="number" id="currentMileage" name="currentMileage" placeholder="Введите текущий пробег">
+                        <button type="button" class="update-button" id="updateMileage">Обновить</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="lastOilChangeMileage">Последняя замена масла (км):</label>
+                    <input type="number" id="lastOilChangeMileage" name="lastOilChangeMileage" placeholder="Пробег при последней замене">
+                </div>
+                <div class="form-group">
+                    <label for="lastTimingBeltMileage">Последняя замена ГРМ (км):</label>
+                    <input type="number" id="lastTimingBeltMileage" name="lastTimingBeltMileage" placeholder="Пробег при последней замене">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Пробег последней замены масла (км)</label>
-            <input type="number" id="car-oil-change" placeholder="Пробег при замене масла">
-        </div>
-        
-        <div class="form-group">
-            <label>Пробег последней замены ГРМ (км)</label>
-            <input type="number" id="car-timing-belt" placeholder="Пробег при замене ГРМ">
-        </div>
-        
-        <div class="form-group">
-            <label>Дата окончания страховки</label>
-            <input type="date" id="car-insurance-date">
-        </div>
-        
-        <div class="form-group">
-            <label>Дата окончания ТО</label>
-            <input type="date" id="car-service-date">
-        </div>
-        
-        <div class="form-group">
-            <label>Заметки</label>
-            <textarea id="car-notes" placeholder="Дополнительная информация"></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label>Ссылки</label>
-            <div class="links-container">
-                <div class="link-item" id="link1">Страховка</div>
-                <div class="link-item" id="link2">Сервисная книжка</div>
-                <div class="link-item" id="link3">Документы</div>
-                <div class="link-item" id="link4">Другое</div>
+
+            <div class="form-section">
+                <h3>Даты</h3>
+                <div class="form-group">
+                    <label for="insuranceEndDate">Окончание страховки:</label>
+                    <input type="date" id="insuranceEndDate" name="insuranceEndDate">
+                </div>
+                <div class="form-group">
+                    <label for="toEndDate">Окончание ТО:</label>
+                    <input type="date" id="toEndDate" name="toEndDate">
+                </div>
             </div>
+
+            <div class="form-section">
+                <h3>Дополнительно</h3>
+                <div class="form-group">
+                    <label for="notes">Заметка:</label>
+                    <textarea id="notes" name="notes" placeholder="Ваши заметки"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ссылки:</label>
+                    <div class="link-slot">
+                        <span class="link-label">Ссылка 1:</span>
+                        <input type="text" name="link1" placeholder="Название или URL">
+                    </div>
+                    <div class="link-slot">
+                        <span class="link-label">Ссылка 2:</span>
+                        <input type="text" name="link2" placeholder="Название или URL">
+                    </div>
+                    <div class="link-slot">
+                        <span class="link-label">Ссылка 3:</span>
+                        <input type="text" name="link3" placeholder="Название или URL">
+                    </div>
+                    <div class="link-slot">
+                        <span class="link-label">Ссылка 4:</span>
+                        <input type="text" name="link4" placeholder="Название или URL">
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="footer">
+            Разработано <a href="https://t.me/clownades" target="_blank">@clownades</a>
         </div>
     </div>
-    
-    <div class="footer">
-        Разработано <a href="https://t.me/clownades" target="_blank">@clownades</a>
-    </div>
-    
+
     <script>
-        // Telegram WebApp initialization
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // State management
-        let cars = [];
-        let currentCarId = null;
-        
-        // DOM elements
-        const mainPage = document.getElementById('main-page');
-        const editPage = document.getElementById('edit-page');
-        const carsList = document.getElementById('cars-list');
-        const addCarBtn = document.getElementById('add-car-btn');
-        const backBtn = document.getElementById('back-btn');
-        const editTitle = document.getElementById('edit-title');
-        
-        // Car form elements
-        const carNameInput = document.getElementById('car-name');
-        const carVinInput = document.getElementById('car-vin');
-        const carPlateInput = document.getElementById('car-plate');
-        const carPurchaseDateInput = document.getElementById('car-purchase-date');
-        const carMileageInput = document.getElementById('car-mileage');
-        const carOilChangeInput = document.getElementById('car-oil-change');
-        const carTimingBeltInput = document.getElementById('car-timing-belt');
-        const carInsuranceDateInput = document.getElementById('car-insurance-date');
-        const carServiceDateInput = document.getElementById('car-service-date');
-        const carNotesInput = document.getElementById('car-notes');
-        
-        // Buttons
-        const copyVinBtn = document.getElementById('copy-vin-btn');
-        const copyPlateBtn = document.getElementById('copy-plate-btn');
-        const updateMileageBtn = document.getElementById('update-mileage-btn');
-        
-        // Initialize the app
-        async function initApp() {
-            // Load cars from Telegram Cloud Storage
-            await loadCars();
-            
-            // Render cars list
-            renderCarsList();
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Check for upcoming events
-            checkUpcomingEvents();
+        // --- Telegram Web App Initialization & Theme Adaptation ---
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+
+        function applyTelegramTheme() {
+            const body = document.body;
+            const themeParams = Telegram.WebApp.themeParams;
+            if (themeParams) {
+                body.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#ffffff');
+                body.style.setProperty('--tg-theme-text-color', themeParams.text_color || '#000000');
+                body.style.setProperty('--tg-theme-hint-color', themeParams.hint_color || '#999999');
+                body.style.setProperty('--tg-theme-link-color', themeParams.link_color || '#2481cc');
+                body.style.setProperty('--tg-theme-button-color', themeParams.button_color || '#2481cc');
+                body.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color || '#ffffff');
+                body.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color || '#f0f0f0');
+                body.style.setProperty('--tg-theme-destructive-text-color', themeParams.destructive_text_color || '#ff3b30');
+            }
         }
-        
-        // Load cars from Telegram Cloud Storage
+
+        applyTelegramTheme();
+        Telegram.WebApp.onEvent('themeChanged', applyTelegramTheme);
+
+        // --- View Management ---
+        const mainScreen = document.getElementById('mainScreen');
+        const carDetailsScreen = document.getElementById('carDetailsScreen');
+        const carListContainer = document.getElementById('carList');
+        const carDetailsForm = document.getElementById('carDetailsForm');
+        const currentCarIdInput = document.getElementById('currentCarId');
+        const carNameInput = document.getElementById('carName');
+        const carDetailsHeader = document.getElementById('carDetailsHeader');
+
+        let cars = []; // Array to hold car data
+
+        function showScreen(screenId) {
+            mainScreen.classList.remove('active');
+            carDetailsScreen.classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
+            Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+
+        // --- Data Storage (using localStorage for demonstration) ---
+        // In a real Telegram Mini App, replace these with Telegram.WebApp.cloudStorage
+        // e.g., await Telegram.WebApp.cloudStorage.setItem(key, JSON.stringify(value));
+        // and await Telegram.WebApp.cloudStorage.getItem(key);
+
+        const STORAGE_KEY = 'telegram_mini_app_cars';
+        const MAX_CARS = 10;
+
         async function loadCars() {
             try {
-                const data = await tg.CloudStorage.getItem('cars');
-                if (data) {
-                    cars = JSON.parse(data);
-                }
-            } catch (error) {
-                console.error('Error loading cars:', error);
+                // In production: const rawData = await Telegram.WebApp.cloudStorage.getItem(STORAGE_KEY + '_' + Telegram.WebApp.initDataUnsafe.user.id);
+                const rawData = localStorage.getItem(STORAGE_KEY); // For local testing
+                cars = rawData ? JSON.parse(rawData) : [];
+                renderCarList();
+                checkAlerts();
+            } catch (e) {
+                console.error("Failed to load cars:", e);
+                Telegram.WebApp.showAlert('Ошибка загрузки данных!');
             }
         }
-        
-        // Save cars to Telegram Cloud Storage
+
         async function saveCars() {
             try {
-                await tg.CloudStorage.setItem('cars', JSON.stringify(cars));
-                tg.HapticFeedback.impactOccurred('light');
-            } catch (error) {
-                console.error('Error saving cars:', error);
-                showAlert('Ошибка сохранения', 'Не удалось сохранить данные. Попробуйте снова.');
+                // In production: await Telegram.WebApp.cloudStorage.setItem(STORAGE_KEY + '_' + Telegram.WebApp.initDataUnsafe.user.id, JSON.stringify(cars));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cars)); // For local testing
+                console.log('Cars saved:', cars);
+                renderCarList(); // Re-render list after saving
+            } catch (e) {
+                console.error("Failed to save cars:", e);
+                Telegram.WebApp.showAlert('Ошибка сохранения данных!');
             }
         }
-        
-        // Render cars list
-        function renderCarsList() {
-            carsList.innerHTML = '';
-            
-            if (cars.length === 0) {
-                carsList.innerHTML = '<div style="text-align: center; color: var(--hint-color); padding: 40px 0;">Нет добавленных автомобилей</div>';
-                return;
-            }
-            
-            cars.forEach((car, index) => {
-                const carCard = document.createElement('div');
-                carCard.className = 'car-card fade-in';
-                carCard.dataset.id = car.id;
-                
-                // Calculate indicators
-                const oilLeft = calculateOilLeft(car);
-                const insuranceDaysLeft = calculateDaysLeft(car.insuranceDate);
-                const serviceDaysLeft = calculateDaysLeft(car.serviceDate);
-                
-                carCard.innerHTML = `
-                    <div class="car-name">${car.name || 'Без названия'}</div>
-                    <div class="car-mileage">${car.mileage ? car.mileage.toLocaleString() + ' км' : '—'}</div>
-                    <div class="indicators">
-                        <div class="indicator ${oilLeft < 1000 ? 'warning' : ''}">Масло: ${oilLeft >= 0 ? oilLeft + ' км' : '—'}</div>
-                        <div class="indicator ${insuranceDaysLeft < 7 ? 'warning' : ''}">Страховка: ${insuranceDaysLeft >= 0 ? insuranceDaysLeft + ' дн.' : '—'}</div>
-                        <div class="indicator ${serviceDaysLeft < 7 ? 'warning' : ''}">ТО: ${serviceDaysLeft >= 0 ? serviceDaysLeft + ' дн.' : '—'}</div>
-                    </div>
-                `;
-                
-                // Add click event
-                carCard.addEventListener('click', () => openEditCar(car.id));
-                
-                // Add swipe to delete
-                setupSwipeToDelete(carCard, index);
-                
-                carsList.appendChild(carCard);
-            });
+
+        // --- Helper Functions ---
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}.${month}.${year}`;
         }
-        
-        // Calculate oil change left
-        function calculateOilLeft(car) {
-            if (!car.mileage || !car.oilChange) return -1;
-            return 10000 - (car.mileage - car.oilChange);
+
+        function parseDate(dateString) {
+             // Converts DD.MM.YYYY to YYYY-MM-DD for date input
+            if (!dateString) return '';
+            const [day, month, year] = dateString.split('.');
+            return `${year}-${month}-${day}`;
         }
-        
-        // Calculate days left until date
-        function calculateDaysLeft(dateString) {
-            if (!dateString) return -1;
-            
-            const dateParts = dateString.split('-');
-            const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+
+        function calculateDaysUntil(eventDateStr) {
+            if (!eventDateStr) return null;
+            const eventDate = new Date(eventDateStr); // Expects YYYY-MM-DD
             const today = new Date();
-            
-            // Set both dates to midnight for accurate day difference
-            today.setHours(0, 0, 0, 0);
-            eventDate.setHours(0, 0, 0, 0);
-            
-            const diffTime = eventDate - today;
+            today.setHours(0, 0, 0, 0); // Reset time for accurate day difference
+
+            const diffTime = eventDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
             return diffDays;
         }
-        
-        // Open edit car screen
-        function openEditCar(carId) {
-            tg.HapticFeedback.impactOccurred('light');
-            
-            currentCarId = carId;
-            const car = cars.find(c => c.id === carId);
-            
-            if (car) {
-                editTitle.textContent = car.name || 'Редактировать';
-                
-                // Fill form with car data
-                carNameInput.value = car.name || '';
-                carVinInput.value = car.vin || '';
-                carPlateInput.value = car.plate || '';
-                carPurchaseDateInput.value = car.purchaseDate || '';
-                carMileageInput.value = car.mileage || '';
-                carOilChangeInput.value = car.oilChange || '';
-                carTimingBeltInput.value = car.timingBelt || '';
-                carInsuranceDateInput.value = car.insuranceDate || '';
-                carServiceDateInput.value = car.serviceDate || '';
-                carNotesInput.value = car.notes || '';
-                
-                // TODO: Load links
-            } else {
-                editTitle.textContent = 'Новый автомобиль';
-                
-                // Clear form for new car
-                carNameInput.value = '';
-                carVinInput.value = '';
-                carPlateInput.value = '';
-                carPurchaseDateInput.value = '';
-                carMileageInput.value = '';
-                carOilChangeInput.value = '';
-                carTimingBeltInput.value = '';
-                carInsuranceDateInput.value = '';
-                carServiceDateInput.value = '';
-                carNotesInput.value = '';
-            }
-            
-            // Switch to edit page
-            mainPage.classList.remove('active');
-            editPage.classList.add('active');
+
+        function calculateOilChange(currentMileage, lastOilChangeMileage) {
+            if (currentMileage === null || lastOilChangeMileage === null) return null;
+            const diff = currentMileage - lastOilChangeMileage;
+            return 10000 - diff;
         }
-        
-        // Save car data
-        async function saveCar() {
-            const carData = {
-                id: currentCarId || Date.now().toString(),
-                name: carNameInput.value,
-                vin: carVinInput.value,
-                plate: carPlateInput.value,
-                purchaseDate: carPurchaseDateInput.value,
-                mileage: carMileageInput.value ? parseInt(carMileageInput.value) : null,
-                oilChange: carOilChangeInput.value ? parseInt(carOilChangeInput.value) : null,
-                timingBelt: carTimingBeltInput.value ? parseInt(carTimingBeltInput.value) : null,
-                insuranceDate: carInsuranceDateInput.value,
-                serviceDate: carServiceDateInput.value,
-                notes: carNotesInput.value,
-                updatedAt: new Date().toISOString()
-            };
-            
-            // Validate
-            if (!carData.name) {
-                showAlert('Ошибка', 'Пожалуйста, укажите название автомобиля');
+
+        function generateUniqueId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // --- Car List Screen Logic ---
+        function renderCarList() {
+            carListContainer.innerHTML = ''; // Clear existing cards
+            if (cars.length === 0) {
+                carListContainer.innerHTML = '<p style="text-align: center; color: var(--hint-color);">Добавьте свой первый автомобиль!</p>';
                 return;
             }
-            
-            if (currentCarId) {
+
+            cars.forEach(car => {
+                const card = document.createElement('div');
+                card.classList.add('car-card');
+                card.dataset.carId = car.id;
+
+                const oilRemaining = calculateOilChange(car.currentMileage, car.lastOilChangeMileage);
+                const insuranceDays = calculateDaysUntil(car.insuranceEndDate);
+                const toDays = calculateDaysUntil(car.toEndDate);
+
+                card.innerHTML = `
+                    <div class="car-card-content">
+                        <h2>${car.name || 'Без названия'}</h2>
+                        <p class="mileage">${car.currentMileage ? car.currentMileage + ' км' : 'Нет данных'}</p>
+                        <div class="indicators">
+                            <p>Масло: <span class="indicator-value ${oilRemaining !== null && oilRemaining <= 1000 ? 'indicator-danger' : ''}">
+                                ${oilRemaining !== null ? oilRemaining + ' км' : 'Нет данных'}
+                            </span></p>
+                            <p>Страховка: <span class="indicator-value ${insuranceDays !== null && insuranceDays <= 30 ? 'indicator-danger' : ''}">
+                                ${insuranceDays !== null ? insuranceDays + ' дн.' : 'Нет данных'}
+                            </span></p>
+                            <p>ТО: <span class="indicator-value ${toDays !== null && toDays <= 30 ? 'indicator-danger' : ''}">
+                                ${toDays !== null ? toDays + ' дн.' : 'Нет данных'}
+                            </span></p>
+                        </div>
+                    </div>
+                    <div class="delete-button-wrapper">
+                        <button class="delete-button">Удалить</button>
+                    </div>
+                `;
+
+                // Handle click to edit
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.delete-button')) {
+                        Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                        editCar(car.id);
+                    }
+                });
+
+                // Handle swipe to delete (simplified to toggle class on click for demo)
+                let touchStartX = 0;
+                card.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                });
+                card.addEventListener('touchend', (e) => {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    if (touchStartX - touchEndX > 50) { // Swiped left
+                        card.classList.add('swiped');
+                        Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                    } else if (touchEndX - touchStartX > 50) { // Swiped right
+                        card.classList.remove('swiped');
+                    } else if (!e.target.closest('.delete-button')) {
+                        // If not a swipe and not on delete button, close any open swipe
+                        document.querySelectorAll('.car-card.swiped').forEach(c => c.classList.remove('swiped'));
+                    }
+                });
+
+                // Handle delete button click
+                card.querySelector('.delete-button').addEventListener('click', () => {
+                    Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                    Telegram.WebApp.showConfirm('Вы уверены, что хотите удалить этот автомобиль?', (confirmed) => {
+                        if (confirmed) {
+                            deleteCar(car.id);
+                        } else {
+                            card.classList.remove('swiped'); // Hide delete button if not confirmed
+                        }
+                    });
+                });
+
+                carListContainer.appendChild(card);
+            });
+        }
+
+        function deleteCar(id) {
+            cars = cars.filter(car => car.id !== id);
+            saveCars();
+        }
+
+        function checkAlerts() {
+            let alerts = [];
+            cars.forEach(car => {
+                const insuranceDays = calculateDaysUntil(car.insuranceEndDate);
+                const toDays = calculateDaysUntil(car.toEndDate);
+
+                if (insuranceDays !== null && insuranceDays <= 30 && insuranceDays >= 0) {
+                    alerts.push(`Приближается срок страховки для "${car.name || 'Авто без названия'}" (${insuranceDays} дн.)`);
+                }
+                if (toDays !== null && toDays <= 30 && toDays >= 0) {
+                    alerts.push(`Приближается срок ТО для "${car.name || 'Авто без названия'}" (${toDays} дн.)`);
+                }
+            });
+
+            if (alerts.length > 0) {
+                Telegram.WebApp.showAlert(alerts.join('\n\n'));
+            }
+        }
+
+
+        // --- Car Details Screen Logic ---
+        function resetCarDetailsForm() {
+            carDetailsForm.reset();
+            currentCarIdInput.value = '';
+            carNameInput.value = '';
+            carDetailsHeader.textContent = 'Новый Авто';
+        }
+
+        function fillCarDetailsForm(car) {
+            currentCarIdInput.value = car.id;
+            carNameInput.value = car.name || '';
+            carDetailsHeader.textContent = car.name || 'Новый Авто';
+
+            document.getElementById('vin').value = car.vin || '';
+            document.getElementById('plateNumber').value = car.plateNumber || '';
+            document.getElementById('purchaseDate').value = car.purchaseDate || ''; // YYYY-MM-DD
+
+            document.getElementById('currentMileage').value = car.currentMileage || '';
+            document.getElementById('lastOilChangeMileage').value = car.lastOilChangeMileage || '';
+            document.getElementById('lastTimingBeltMileage').value = car.lastTimingBeltMileage || '';
+
+            document.getElementById('insuranceEndDate').value = car.insuranceEndDate || ''; // YYYY-MM-DD
+            document.getElementById('toEndDate').value = car.toEndDate || ''; // YYYY-MM-DD
+
+            document.getElementById('notes').value = car.notes || '';
+            document.querySelector('[name="link1"]').value = car.link1 || '';
+            document.querySelector('[name="link2"]').value = car.link2 || '';
+            document.querySelector('[name="link3"]').value = car.link3 || '';
+            document.querySelector('[name="link4"]').value = car.link4 || '';
+        }
+
+        function getCarDetailsFromForm() {
+            const formData = new FormData(carDetailsForm);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            // Convert numbers
+            data.currentMileage = data.currentMileage ? parseInt(data.currentMileage) : null;
+            data.lastOilChangeMileage = data.lastOilChangeMileage ? parseInt(data.lastOilChangeMileage) : null;
+            data.lastTimingBeltMileage = data.lastTimingBeltMileage ? parseInt(data.lastTimingBeltMileage) : null;
+
+            return data;
+        }
+
+        function saveCarDetails() {
+            const carId = currentCarIdInput.value;
+            const formData = getCarDetailsFromForm();
+
+            if (!formData.name) {
+                Telegram.WebApp.showAlert('Название автомобиля обязательно для заполнения!');
+                Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+
+            if (carId) {
                 // Update existing car
-                const index = cars.findIndex(c => c.id === currentCarId);
+                const index = cars.findIndex(car => car.id === carId);
                 if (index !== -1) {
-                    cars[index] = carData;
+                    cars[index] = { ...cars[index], ...formData };
                 }
             } else {
-                // Check max cars limit
-                if (cars.length >= 10) {
-                    showAlert('Лимит', 'Максимум 10 автомобилей на аккаунт');
+                // Add new car
+                if (cars.length >= MAX_CARS) {
+                    Telegram.WebApp.showAlert(`Вы можете добавить не более ${MAX_CARS} автомобилей.`);
+                    Telegram.WebApp.HapticFeedback.notificationOccurred('error');
                     return;
                 }
-                
-                // Add new car
-                cars.push(carData);
+                formData.id = generateUniqueId();
+                cars.push(formData);
             }
-            
-            // Save to storage
-            await saveCars();
-            
-            // Go back to main page
-            goBack();
-            
-            // Re-render cars list
-            renderCarsList();
+            saveCars();
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         }
-        
-        // Delete car
-        async function deleteCar(carId) {
-            tg.HapticFeedback.impactOccurred('heavy');
-            
-            const confirm = await showConfirm('Удалить автомобиль', 'Вы уверены, что хотите удалить этот автомобиль? Данные будут потеряны.');
-            
-            if (confirm) {
-                cars = cars.filter(car => car.id !== carId);
-                await saveCars();
-                renderCarsList();
-            }
-        }
-        
-        // Setup swipe to delete
-        function setupSwipeToDelete(element, index) {
-            let startX, moveX;
-            const threshold = 50;
-            
-            element.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-            }, { passive: true });
-            
-            element.addEventListener('touchmove', (e) => {
-                moveX = e.touches[0].clientX;
-                const diff = startX - moveX;
-                
-                if (diff > 0) {
-                    element.style.transform = `translateX(-${Math.min(diff, 100)}px)`;
-                }
-            }, { passive: true });
-            
-            element.addEventListener('touchend', (e) => {
-                const diff = startX - moveX;
-                
-                if (diff > threshold) {
-                    deleteCar(element.dataset.id);
-                } else {
-                    element.style.transform = '';
-                }
-            }, { passive: true });
-        }
-        
-        // Go back to main page
-        function goBack() {
-            tg.HapticFeedback.impactOccurred('light');
-            editPage.classList.remove('active');
-            mainPage.classList.add('active');
-            currentCarId = null;
-        }
-        
-        // Check for upcoming events
-        function checkUpcomingEvents() {
-            const now = new Date();
-            const upcomingEvents = [];
-            
-            cars.forEach(car => {
-                // Check insurance
-                if (car.insuranceDate) {
-                    const daysLeft = calculateDaysLeft(car.insuranceDate);
-                    if (daysLeft >= 0 && daysLeft <= 7) {
-                        upcomingEvents.push({
-                            car: car.name || 'Без названия',
-                            type: 'страховка',
-                            days: daysLeft
-                        });
-                    }
-                }
-                
-                // Check service
-                if (car.serviceDate) {
-                    const daysLeft = calculateDaysLeft(car.serviceDate);
-                    if (daysLeft >= 0 && daysLeft <= 7) {
-                        upcomingEvents.push({
-                            car: car.name || 'Без названия',
-                            type: 'ТО',
-                            days: daysLeft
-                        });
-                    }
-                }
-                
-                // Check oil change
-                const oilLeft = calculateOilLeft(car);
-                if (oilLeft >= 0 && oilLeft <= 1000) {
-                    upcomingEvents.push({
-                        car: car.name || 'Без названия',
-                        type: 'замена масла',
-                        km: oilLeft
-                    });
-                }
-            });
-            
-            if (upcomingEvents.length > 0) {
-                let message = 'Внимание:\n\n';
-                
-                upcomingEvents.forEach(event => {
-                    if (event.km !== undefined) {
-                        message += `• ${event.car}: скоро ${event.type} (осталось ${event.km} км)\n`;
-                    } else {
-                        message += `• ${event.car}: скоро ${event.type} (осталось ${event.days} дн.)\n`;
-                    }
+
+        // --- Event Listeners ---
+
+        // Add New Car Button
+        document.getElementById('addCarButton').addEventListener('click', () => {
+            resetCarDetailsForm();
+            showScreen('carDetailsScreen');
+        });
+
+        // Back Button
+        document.getElementById('backButton').addEventListener('click', () => {
+            saveCarDetails(); // Auto-save when going back
+            showScreen('mainScreen');
+        });
+
+        // Auto-save on form changes
+        carDetailsForm.addEventListener('change', () => {
+            // Delay save slightly to avoid multiple saves on rapid input
+            // In a real app, you might debounce this
+            saveCarDetails();
+        });
+
+        carNameInput.addEventListener('input', () => {
+            carDetailsHeader.textContent = carNameInput.value || 'Новый Авто';
+        });
+
+        // Copy VIN/Plate Number
+        document.getElementById('copyVin').addEventListener('click', () => {
+            const vin = document.getElementById('vin').value;
+            if (vin) {
+                navigator.clipboard.writeText(vin).then(() => {
+                    Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                    Telegram.WebApp.showAlert('VIN скопирован!');
+                }).catch(err => {
+                    Telegram.WebApp.showAlert('Ошибка копирования VIN: ' + err.message);
                 });
-                
-                showAlert('Напоминание', message);
+            }
+        });
+
+        document.getElementById('copyPlateNumber').addEventListener('click', () => {
+            const plateNumber = document.getElementById('plateNumber').value;
+            if (plateNumber) {
+                navigator.clipboard.writeText(plateNumber).then(() => {
+                    Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                    Telegram.WebApp.showAlert('Госномер скопирован!');
+                }).catch(err => {
+                    Telegram.WebApp.showAlert('Ошибка копирования госномера: ' + err.message);
+                });
+            }
+        });
+
+        // Update Mileage
+        document.getElementById('updateMileage').addEventListener('click', () => {
+            // Here you would typically get the current mileage from an external source
+            // or just update it manually. For now, it's a placeholder.
+            Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            Telegram.WebApp.showAlert('Функция обновления пробега пока не реализована.');
+            // You might want to pre-fill with a suggestion or dialog for input
+        });
+
+        // Function to edit an existing car
+        function editCar(carId) {
+            const car = cars.find(c => c.id === carId);
+            if (car) {
+                fillCarDetailsForm(car);
+                showScreen('carDetailsScreen');
+            } else {
+                Telegram.WebApp.showAlert('Автомобиль не найден.');
             }
         }
-        
-        // Show alert
-        function showAlert(title, message) {
-            return new Promise((resolve) => {
-                tg.showAlert(message, resolve);
-            });
-        }
-        
-        // Show confirm dialog
-        function showConfirm(title, message) {
-            return new Promise((resolve) => {
-                tg.showConfirm(message, (confirmed) => {
-                    resolve(confirmed);
-                });
-            });
-        }
-        
-        // Setup event listeners
-        function setupEventListeners() {
-            // Add car button
-            addCarBtn.addEventListener('click', () => {
-                tg.HapticFeedback.impactOccurred('light');
-                openEditCar(null);
-            });
-            
-            // Back button
-            backBtn.addEventListener('click', goBack);
-            
-            // Copy buttons
-            copyVinBtn.addEventListener('click', () => {
-                if (carVinInput.value) {
-                    navigator.clipboard.writeText(carVinInput.value);
-                    tg.HapticFeedback.impactOccurred('light');
-                    tg.showPopup({
-                        title: 'Скопировано',
-                        message: 'VIN скопирован в буфер обмена',
-                        buttons: [{ type: 'ok' }]
-                    });
-                }
-            });
-            
-            copyPlateBtn.addEventListener('click', () => {
-                if (carPlateInput.value) {
-                    navigator.clipboard.writeText(carPlateInput.value);
-                    tg.HapticFeedback.impactOccurred('light');
-                    tg.showPopup({
-                        title: 'Скопировано',
-                        message: 'Госномер скопирован в буфер обмена',
-                        buttons: [{ type: 'ok' }]
-                    });
-                }
-            });
-            
-            // Update mileage button
-            updateMileageBtn.addEventListener('click', () => {
-                tg.HapticFeedback.impactOccurred('light');
-                // TODO: Implement mileage update logic
-                showAlert('Обновление пробега', 'Функция обновления пробега будет реализована в следующей версии');
-            });
-            
-            // Auto-save on input change
-            const inputs = [
-                carNameInput, carVinInput, carPlateInput, carPurchaseDateInput,
-                carMileageInput, carOilChangeInput, carTimingBeltInput,
-                carInsuranceDateInput, carServiceDateInput, carNotesInput
-            ];
-            
-            inputs.forEach(input => {
-                input.addEventListener('change', saveCar);
-            });
-            
-            // Link buttons
-            document.querySelectorAll('.link-item').forEach(link => {
-                link.addEventListener('click', () => {
-                    tg.HapticFeedback.impactOccurred('light');
-                    showAlert('Ссылки', 'Функция управления ссылками будет реализована в следующей версии');
-                });
-            });
-        }
-        
-        // Initialize the app when ready
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                showAlert('Ошибка', 'Не удалось загрузить данные пользователя. Пожалуйста, откройте приложение через Telegram.');
-            });
-        }
+
+        // Initial load of cars when the app starts
+        loadCars();
+
     </script>
 </body>
 </html>
