@@ -917,6 +917,9 @@
                     throw new Error('CloudStorage is not available');
                 }
                 
+                // Initialize empty cars array
+                cars = [];
+                
                 setupEventListeners();
                 await loadCars();
             } catch (error) {
@@ -932,7 +935,23 @@
                 const data = await tg.CloudStorage.getItem(storageKey);
                 
                 if (data) {
-                    cars = JSON.parse(data);
+                    try {
+                        // Если данные уже объект, используем их напрямую
+                        if (typeof data === 'object') {
+                            cars = Array.isArray(data) ? data : Object.values(data);
+                        } 
+                        // Если данные строка, пытаемся распарсить
+                        else if (typeof data === 'string') {
+                            cars = JSON.parse(data);
+                        } 
+                        // В остальных случаях создаем пустой массив
+                        else {
+                            cars = [];
+                        }
+                    } catch (error) {
+                        console.error('Error parsing data:', error);
+                        cars = [];
+                    }
                 } else {
                     cars = [];
                 }
@@ -948,7 +967,9 @@
         async function saveCars() {
             try {
                 const storageKey = `cars_${userId}`;
-                await tg.CloudStorage.setItem(storageKey, JSON.stringify(cars));
+                // Убедимся, что сохраняем массив
+                const dataToSave = Array.isArray(cars) ? cars : [];
+                await tg.CloudStorage.setItem(storageKey, JSON.stringify(dataToSave));
                 renderCars();
             } catch (error) {
                 console.error('Error saving cars:', error);
