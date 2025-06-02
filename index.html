@@ -905,6 +905,8 @@
         async function init() {
             try {
                 console.log('Initializing app...');
+                console.log('Telegram WebApp version:', tg.version);
+                console.log('CloudStorage available:', !!tg.CloudStorage);
                 
                 // Wait for Telegram WebApp to be ready
                 if (!tg.isReady) {
@@ -920,7 +922,20 @@
                 
                 // Initialize CloudStorage
                 if (!tg.CloudStorage) {
+                    console.error('CloudStorage is not available');
                     throw new Error('CloudStorage is not available');
+                }
+                
+                // Test CloudStorage
+                try {
+                    console.log('Testing CloudStorage...');
+                    await tg.CloudStorage.setItem('test', 'test');
+                    const testValue = await tg.CloudStorage.getItem('test');
+                    console.log('CloudStorage test result:', testValue);
+                    await tg.CloudStorage.removeItem('test');
+                } catch (error) {
+                    console.error('CloudStorage test failed:', error);
+                    throw new Error('CloudStorage test failed');
                 }
                 
                 setupEventListeners();
@@ -928,7 +943,7 @@
                 console.log('Initialization complete');
             } catch (error) {
                 console.error('Error during initialization:', error);
-                alert('Ошибка инициализации приложения');
+                alert('Ошибка инициализации приложения: ' + error.message);
             }
         }
 
@@ -936,28 +951,42 @@
         async function loadCars() {
             try {
                 console.log('Loading cars from CloudStorage...');
-                const data = await tg.CloudStorage.getItem('cars');
-                console.log('Raw data from CloudStorage:', data);
+                console.log('Current cars array:', cars);
                 
-                if (data) {
+                // Try to get all items from CloudStorage
+                const allItems = await tg.CloudStorage.getItems();
+                console.log('All CloudStorage items:', allItems);
+                
+                const carsData = allItems['cars'];
+                console.log('Cars data from CloudStorage:', carsData);
+                
+                if (carsData) {
                     try {
                         // Handle both string and object data
-                        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+                        const parsedData = typeof carsData === 'string' ? JSON.parse(carsData) : carsData;
                         console.log('Parsed cars data:', parsedData);
-                        cars = Array.isArray(parsedData) ? parsedData : [];
+                        
+                        if (Array.isArray(parsedData)) {
+                            cars = parsedData;
+                            console.log('Successfully loaded cars:', cars);
+                        } else {
+                            console.warn('Loaded data is not an array, initializing empty array');
+                            cars = [];
+                        }
                     } catch (parseError) {
                         console.error('Error parsing cars data:', parseError);
                         cars = [];
                     }
                 } else {
-                    console.log('No data in CloudStorage, initializing empty array');
+                    console.log('No cars data in CloudStorage, initializing empty array');
                     cars = [];
                 }
                 
+                console.log('Final cars array:', cars);
                 renderCars();
             } catch (error) {
                 console.error('Error loading cars:', error);
-                alert('Ошибка загрузки данных');
+                alert('Ошибка загрузки данных: ' + error.message);
                 cars = [];
                 renderCars();
             }
@@ -969,7 +998,8 @@
                 const data = JSON.stringify(cars);
                 console.log('Data to save:', data);
                 
-                await tg.CloudStorage.setItem('cars', data);
+                // Save using setItems instead of setItem
+                await tg.CloudStorage.setItems({ 'cars': data });
                 console.log('Data saved successfully');
                 renderCars();
             } catch (error) {
@@ -981,8 +1011,14 @@
         // Start the app
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, starting app...');
-            await tg.ready();
-            await init();
+            try {
+                await tg.ready();
+                console.log('Telegram WebApp ready event fired');
+                await init();
+            } catch (error) {
+                console.error('Error starting app:', error);
+                alert('Ошибка запуска приложения: ' + error.message);
+            }
         });
 
         // Adapt theme to Telegram
