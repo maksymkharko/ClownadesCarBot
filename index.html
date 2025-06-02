@@ -902,14 +902,11 @@
         // Initialize
         async function init() {
             try {
-                console.log('=== Initializing app ===');
-                
-                // Get user ID
+                // Get user ID from Telegram
                 userId = tg.initDataUnsafe?.user?.id;
                 if (!userId) {
                     throw new Error('User ID not available');
                 }
-                console.log('User ID:', userId);
                 
                 // Initialize Telegram WebApp
                 tg.expand();
@@ -919,9 +916,6 @@
                 if (!tg.CloudStorage) {
                     throw new Error('CloudStorage is not available');
                 }
-                
-                // Wait for CloudStorage to be ready
-                await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 setupEventListeners();
                 await loadCars();
@@ -934,35 +928,15 @@
         // Load cars from Telegram Cloud Storage
         async function loadCars() {
             try {
-                console.log('Loading cars...');
                 const storageKey = `cars_${userId}`;
-                console.log('Storage key:', storageKey);
-                
                 const data = await tg.CloudStorage.getItem(storageKey);
-                console.log('Loaded data:', data);
                 
                 if (data) {
-                    try {
-                        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-                        console.log('Parsed data:', parsedData);
-                        
-                        if (Array.isArray(parsedData)) {
-                            cars = parsedData;
-                        } else if (typeof parsedData === 'object') {
-                            cars = Object.values(parsedData);
-                        } else {
-                            cars = [];
-                        }
-                    } catch (error) {
-                        console.error('Error parsing data:', error);
-                        cars = [];
-                    }
+                    cars = JSON.parse(data);
                 } else {
-                    console.log('No data found in storage');
                     cars = [];
                 }
                 
-                console.log('Final cars array:', cars);
                 renderCars();
             } catch (error) {
                 console.error('Error loading cars:', error);
@@ -973,30 +947,12 @@
 
         async function saveCars() {
             try {
-                console.log('Saving cars...');
-                console.log('Cars to save:', cars);
-                
                 const storageKey = `cars_${userId}`;
-                const data = JSON.stringify(cars);
-                
-                console.log('Saving to key:', storageKey);
-                console.log('Data to save:', data);
-                
-                await tg.CloudStorage.setItem(storageKey, data);
-                
-                // Verify save
-                const savedData = await tg.CloudStorage.getItem(storageKey);
-                console.log('Verification - saved data:', savedData);
-                
-                if (!savedData) {
-                    throw new Error('Failed to verify saved data');
-                }
-                
-                console.log('Save successful');
+                await tg.CloudStorage.setItem(storageKey, JSON.stringify(cars));
                 renderCars();
             } catch (error) {
                 console.error('Error saving cars:', error);
-                alert('Ошибка сохранения данных: ' + error.message);
+                alert('Ошибка сохранения данных');
             }
         }
 
@@ -1119,8 +1075,6 @@
             e.preventDefault();
             
             try {
-                console.log('Adding new car...');
-                
                 const newCar = {
                     id: userId + '_' + Date.now(),
                     name: document.getElementById('carName').value,
@@ -1139,11 +1093,7 @@
                     link4: formatURL(document.getElementById('link4').value)
                 };
 
-                console.log('New car object:', newCar);
-                
                 cars.push(newCar);
-                console.log('Updated cars array:', cars);
-                
                 await saveCars();
                 
                 addCarModal.style.display = 'none';
@@ -1152,7 +1102,7 @@
                 triggerHapticFeedback('success');
             } catch (error) {
                 console.error('Error adding car:', error);
-                alert('Ошибка при добавлении автомобиля: ' + error.message);
+                alert('Ошибка при добавлении автомобиля');
             }
         }
 
