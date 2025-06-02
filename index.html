@@ -1,103 +1,155 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мои Авто</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Clownades Car Bot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0 16px 80px; /* место под футер */
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+    }
+    .car-card {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+    .indicator {
+      font-size: 0.9em;
+      color: #555;
+    }
+    .car-card strong {
+      font-size: 1.2em;
+    }
+    button#addCarBtn {
+      font-size: 1.5em;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+    footer {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.8em;
+      color: #888;
+      z-index: 100;
+    }
+    footer a {
+      color: inherit;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Мои авто</h2>
+    <button id="addCarBtn">+</button>
+  </header>
+
+  <div id="carList"></div>
+
+  <footer>
+    Разработано <a href="https://t.me/clownades" target="_blank">@clownades</a>
+  </footer>
+
   <script>
-    const telegram = window.Telegram.WebApp;
-    telegram.ready();
-    telegram.expand();
+    let cloudStorage;
+    let userId;
 
-    const cloudStorage = telegram.cloudStorage;
-    const userId = telegram.initDataUnsafe.user.id;
+    function renderCars() {
+      const carListEl = document.getElementById("carList");
+      carListEl.innerHTML = "";
 
-    const getToday = () => new Date().toISOString().split('T')[0];
-    const formatDate = date => new Date(date).toLocaleDateString('ru-RU');
-    const daysLeft = date => Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
-    const kmLeftToOil = (current, last) => 10000 - (current - last);
+      cloudStorage.getItem("cars").then(raw => {
+        const cars = JSON.parse(raw || "[]");
 
-    async function copyText(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        telegram.HapticFeedback.notificationOccurred("success");
-      } catch (e) {
-        alert("Не удалось скопировать");
-      }
+        cars.forEach((car, index) => {
+          const div = document.createElement("div");
+          div.className = "car-card";
+
+          const kmToOil = 10000 - (car.currentMileage - car.lastOilChange);
+          const daysToInsurance = daysBetween(new Date(), new Date(car.insuranceEnd));
+          const daysToTech = daysBetween(new Date(), new Date(car.techEnd));
+
+          div.innerHTML = `
+            <strong>${car.name}</strong><br>
+            <div style="font-size: 1.4em">${car.currentMileage} км</div>
+            <div class="indicator">Масло: ${kmToOil} км</div>
+            <div class="indicator">Страховка: ${daysToInsurance} дн.</div>
+            <div class="indicator">ТО: ${daysToTech} дн.</div>
+          `;
+
+          // Удаление при клике по карточке (временно)
+          div.onclick = () => {
+            if (confirm(`Удалить автомобиль ${car.name}?`)) {
+              cars.splice(index, 1);
+              cloudStorage.setItem("cars", JSON.stringify(cars));
+              renderCars();
+            }
+          };
+
+          carListEl.appendChild(div);
+        });
+      });
     }
 
-    async function deleteCar(key) {
-      if (!confirm("Удалить автомобиль?")) return;
-      const keys = JSON.parse(await cloudStorage.getItem('car_keys') || '[]');
-      await cloudStorage.removeItem(key);
-      const updated = keys.filter(k => k !== key);
-      await cloudStorage.setItem('car_keys', JSON.stringify(updated));
-      location.reload();
-    }
-
-    async function renderCars() {
-      const container = document.getElementById('car-list');
-      container.innerHTML = '';
-      const keys = JSON.parse(await cloudStorage.getItem('car_keys') || '[]');
-
-      for (const key of keys) {
-        const car = JSON.parse(await cloudStorage.getItem(key));
-        const kmLeft = kmLeftToOil(car.currentMileage, car.lastOilChange);
-        const daysToInsurance = daysLeft(car.insuranceDate);
-        const daysToInspection = daysLeft(car.techInspectionDate);
-
-        const card = document.createElement('div');
-        card.className = "bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md mb-4 relative";
-        card.innerHTML = `
-          <h2 class="text-xl font-bold">${car.name}</h2>
-          <p class="text-2xl mt-1">${car.currentMileage} км</p>
-          <div class="flex justify-between text-sm text-gray-600 mt-2">
-            <span>Масло: ${kmLeft} км</span>
-            <span>Страховка: ${daysToInsurance} дн.</span>
-            <span>ТО: ${daysToInspection} дн.</span>
-          </div>
-          <button onclick="deleteCar('${key}')" class="absolute top-2 right-2 text-red-500">Удалить</button>
-        `;
-        container.appendChild(card);
-      }
+    function daysBetween(d1, d2) {
+      return Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
     }
 
     async function addCar() {
-      const keys = JSON.parse(await cloudStorage.getItem('car_keys') || '[]');
-      if (keys.length >= 10) return alert("Максимум 10 авто на аккаунт");
+      let raw = await cloudStorage.getItem("cars");
+      let cars = JSON.parse(raw || "[]");
 
-      const id = `car_${Date.now()}`;
+      if (cars.length >= 10) {
+        alert("Максимум 10 авто");
+        return;
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+
       const newCar = {
-        name: "Новый автомобиль",
-        vin: "",
-        plate: "",
-        purchaseDate: getToday(),
+        name: "Без названия",
         currentMileage: 0,
         lastOilChange: 0,
-        lastTimingChange: 0,
-        insuranceDate: getToday(),
-        techInspectionDate: getToday(),
-        note: "",
-        links: ["", "", "", ""]
+        insuranceEnd: today,
+        techEnd: today
       };
-      await cloudStorage.setItem(id, JSON.stringify(newCar));
-      keys.push(id);
-      await cloudStorage.setItem('car_keys', JSON.stringify(keys));
-      location.reload();
+
+      cars.push(newCar);
+      await cloudStorage.setItem("cars", JSON.stringify(cars));
+      renderCars();
     }
 
-    window.onload = renderCars;
+    window.onload = () => {
+      if (window.Telegram?.WebApp) {
+        const telegram = window.Telegram.WebApp;
+        telegram.ready();
+        telegram.expand();
+
+        cloudStorage = telegram.cloudStorage;
+        userId = telegram.initDataUnsafe?.user?.id;
+
+        document.getElementById("addCarBtn").onclick = addCar;
+        renderCars();
+      } else {
+        alert("Открой через Telegram Mini App");
+      }
+    };
   </script>
-</head>
-<body class="bg-gray-100 dark:bg-black text-gray-900 dark:text-white font-sans">
-  <header class="bg-blue-600 text-white p-4 text-center font-bold text-xl relative">
-    Мои Авто
-    <button onclick="addCar()" class="absolute right-4 top-2 text-2xl">+</button>
-  </header>
-  <main class="p-4" id="car-list"></main>
-  <footer class="fixed bottom-0 left-0 right-0 text-center bg-white dark:bg-gray-900 text-sm p-2 border-t dark:border-gray-700">
-    Разработано <a href="https://t.me/clownades" class="text-blue-500">@clownades</a>
-  </footer>
 </body>
 </html>
