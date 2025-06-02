@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Мои авто</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -861,6 +861,7 @@
         // Constants
         const STORAGE_KEY = 'clownadescarskey';
         const OIL_CHANGE_INTERVAL = 10000; // 10,000 km
+        const TIMING_BELT_INTERVAL = 60000; // 60,000 km
         const WARNING_DAYS = 7;
 
         // DOM Elements
@@ -874,17 +875,29 @@
         // State
         let cars = [];
         let currentCarIndex = -1;
+        let editingCarId = null;
+        let updatingMileageCarId = null;
 
         // Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.ready();
-
+        
+        // Haptic feedback
+        function triggerHapticFeedback(type = 'light') {
+            if (tg.isVersionAtLeast('6.1')) {
+                tg.HapticFeedback.impactOccurred(type);
+            }
+        }
+        
         // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadCars();
-            setupEventListeners();
-            adaptTheme();
-        });
+        function init() {
+            tg.expand();
+            tg.enableClosingConfirmation();
+            loadCars();
+        }
+        
+        // Start the app
+        tg.ready();
+        init();
 
         // Adapt theme to Telegram
         function adaptTheme() {
@@ -912,7 +925,7 @@
             // Add car button
             document.querySelector('.add-car-button').addEventListener('click', () => {
                 addCarModal.style.display = 'block';
-                tg.HapticFeedback.impactOccurred('light');
+                triggerHapticFeedback('light');
             });
 
             // Add car form
@@ -920,42 +933,42 @@
             addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
                 addCarModal.style.display = 'none';
                 addCarForm.reset();
-                tg.HapticFeedback.impactOccurred('light');
+                triggerHapticFeedback('light');
             });
 
             // View car modal buttons
             viewCarModal.querySelector('.edit-button').addEventListener('click', () => {
                 handleEditCar();
-                tg.HapticFeedback.impactOccurred('medium');
+                triggerHapticFeedback('medium');
             });
             viewCarModal.querySelector('.delete-button').addEventListener('click', () => {
                 showDeleteConfirmation();
-                tg.HapticFeedback.impactOccurred('medium');
+                triggerHapticFeedback('medium');
             });
             viewCarModal.querySelector('.close-button').addEventListener('click', () => {
                 viewCarModal.style.display = 'none';
-                tg.HapticFeedback.impactOccurred('light');
+                triggerHapticFeedback('light');
             });
 
             // Confirmation dialog
             confirmationDialog.querySelector('.confirm-button').addEventListener('click', () => {
                 handleDeleteCar();
-                tg.HapticFeedback.impactOccurred('heavy');
+                triggerHapticFeedback('heavy');
             });
             confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
                 confirmationDialog.style.display = 'none';
-                tg.HapticFeedback.impactOccurred('light');
+                triggerHapticFeedback('light');
             });
 
             // Close modals when clicking outside
             window.addEventListener('click', (e) => {
                 if (e.target === addCarModal) {
                     addCarModal.style.display = 'none';
-                    tg.HapticFeedback.impactOccurred('light');
+                    triggerHapticFeedback('light');
                 }
                 if (e.target === viewCarModal) {
                     viewCarModal.style.display = 'none';
-                    tg.HapticFeedback.impactOccurred('light');
+                    triggerHapticFeedback('light');
                 }
             });
         }
@@ -963,23 +976,23 @@
         // Car Management Functions
         async function loadCars() {
             try {
-                const data = await tg.CloudStorage.getItem(STORAGE_KEY);
-                cars = data ? JSON.parse(data).cars || [] : [];
-                renderCarList();
-            } catch (e) {
-                console.error('Error loading cars:', e);
-                showToast('Ошибка при загрузке данных');
+                const data = await tg.CloudStorage.getItem('cars');
+                cars = data ? JSON.parse(data) : [];
+                renderCars();
+            } catch (error) {
+                console.error('Error loading cars:', error);
                 cars = [];
-                renderCarList();
+                renderCars();
             }
         }
 
         async function saveCars() {
             try {
-                await tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }));
-            } catch (e) {
-                console.error('Error saving cars:', e);
-                showToast('Ошибка при сохранении данных');
+                await tg.CloudStorage.setItem('cars', JSON.stringify(cars));
+                renderCars();
+            } catch (error) {
+                console.error('Error saving cars:', error);
+                alert('Ошибка сохранения данных');
             }
         }
 
@@ -1005,12 +1018,12 @@
 
             cars.push(newCar);
             await saveCars();
-            renderCarList();
+            renderCars();
             
             addCarModal.style.display = 'none';
             addCarForm.reset();
             showToast('Автомобиль добавлен');
-            tg.HapticFeedback.notificationOccurred('success');
+            triggerHapticFeedback('success');
         }
 
         async function handleEditCar() {
@@ -1035,9 +1048,9 @@
                 car.link4 = formatURL(carInfo.querySelector('[data-field="link4"]').value);
 
                 await saveCars();
-                renderCarList();
+                renderCars();
                 showToast('Изменения сохранены');
-                tg.HapticFeedback.notificationOccurred('success');
+                triggerHapticFeedback('success');
                 
                 carInfo.classList.remove('editing');
                 viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
@@ -1053,16 +1066,16 @@
         async function handleDeleteCar() {
             cars.splice(currentCarIndex, 1);
             await saveCars();
-            renderCarList();
+            renderCars();
             
             confirmationDialog.style.display = 'none';
             viewCarModal.style.display = 'none';
             showToast('Автомобиль удален');
-            tg.HapticFeedback.notificationOccurred('success');
+            triggerHapticFeedback('success');
         }
 
         // UI Functions
-        function renderCarList() {
+        function renderCars() {
             carList.innerHTML = '';
             cars.forEach((car, index) => {
                 const carElement = createCarElement(car, index);
@@ -1093,7 +1106,7 @@
 
             div.addEventListener('click', () => {
                 showCarDetails(index);
-                tg.HapticFeedback.impactOccurred('light');
+                triggerHapticFeedback('light');
             });
             return div;
         }
@@ -1248,11 +1261,11 @@
         function copyVIN(vin) {
             navigator.clipboard.writeText(vin).then(() => {
                 showToast('VIN скопирован');
-                tg.HapticFeedback.notificationOccurred('success');
+                triggerHapticFeedback('success');
             }).catch(err => {
                 console.error('Failed to copy VIN:', err);
                 showToast('Ошибка при копировании VIN');
-                tg.HapticFeedback.notificationOccurred('error');
+                triggerHapticFeedback('error');
             });
         }
 
@@ -1314,11 +1327,11 @@
                 await saveCars();
                 renderCarInfo(car);
                 showToast('Описание сохранено');
-                tg.HapticFeedback.notificationOccurred('success');
+                triggerHapticFeedback('success');
             });
             
             editButton.replaceWith(saveButton);
-            tg.HapticFeedback.impactOccurred('light');
+            triggerHapticFeedback('light');
         }
 
         function formatURL(url) {
@@ -1381,9 +1394,41 @@
 
             // Update timers every minute
             setInterval(() => {
-                renderCarList();
+                renderCars();
             }, 60000);
         });
+
+        async function updateMileage(carId, newMileage) {
+            try {
+                const car = cars.find(c => c.id === carId);
+                if (car) {
+                    car.mileage = parseInt(newMileage);
+                    car.lastOilChange = car.lastOilChange || newMileage;
+                    car.lastTimingBeltChange = car.lastTimingBeltChange || newMileage;
+                    await saveCars();
+                    showToast('Пробег обновлен');
+                    triggerHapticFeedback('success');
+                }
+            } catch (error) {
+                console.error('Error updating mileage:', error);
+                alert('Ошибка обновления пробега');
+            }
+        }
+
+        async function deleteCar(carId) {
+            try {
+                const index = cars.findIndex(c => c.id === carId);
+                if (index !== -1) {
+                    cars.splice(index, 1);
+                    await saveCars();
+                    showToast('Автомобиль удален');
+                    triggerHapticFeedback('success');
+                }
+            } catch (error) {
+                console.error('Error deleting car:', error);
+                alert('Ошибка удаления автомобиля');
+            }
+        }
     </script>
 </body>
 </html>
