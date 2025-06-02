@@ -842,9 +842,14 @@
     <div class="footer">
         <div class="footer-content">
             <a href="https://t.me/clownades" class="author-link" target="_blank">@clownades</a>
-            <button class="clear-storage-button" onclick="clearStorage()">
-                <i class="fas fa-trash"></i>
-            </button>
+            <div style="display: flex; gap: 10px;">
+                <button class="clear-storage-button" onclick="viewAllStorageData()">
+                    <i class="fas fa-database"></i>
+                </button>
+                <button class="clear-storage-button" onclick="clearStorage()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1548,6 +1553,61 @@
             } catch (error) {
                 console.error('Error clearing storage:', error);
                 alert('Ошибка при очистке хранилища');
+            }
+        }
+
+        async function viewAllStorageData() {
+            try {
+                const allData = await tg.CloudStorage.getItems();
+                console.log('All CloudStorage data:', allData);
+                
+                // Показываем данные в модальном окне
+                const modal = document.createElement('div');
+                modal.className = 'modal active';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>Данные в хранилище</h2>
+                        <pre style="white-space: pre-wrap; word-break: break-all; background: var(--glass-background); padding: 15px; border-radius: 8px; margin: 10px 0;">${JSON.stringify(allData, null, 2)}</pre>
+                        <div class="modal-buttons">
+                            <button onclick="clearAllStorageData()" class="delete-button">
+                                <i class="fas fa-trash"></i> Очистить все данные
+                            </button>
+                            <button onclick="this.closest('.modal').remove()" class="close-button">
+                                <i class="fas fa-times"></i> Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('Error viewing storage data:', error);
+                alert('Ошибка при просмотре данных хранилища');
+            }
+        }
+
+        async function clearAllStorageData() {
+            try {
+                if (confirm('Вы уверены, что хотите удалить ВСЕ данные приложения? Это действие нельзя отменить.')) {
+                    const allData = await tg.CloudStorage.getItems();
+                    
+                    // Удаляем все ключи
+                    for (const key in allData) {
+                        await tg.CloudStorage.removeItem(key);
+                    }
+                    
+                    // Очищаем локальный массив
+                    cars = [];
+                    renderCars();
+                    
+                    // Закрываем модальное окно
+                    document.querySelector('.modal').remove();
+                    
+                    showToast('Все данные удалены');
+                    triggerHapticFeedback('success');
+                }
+            } catch (error) {
+                console.error('Error clearing all storage data:', error);
+                alert('Ошибка при очистке данных хранилища');
             }
         }
     </script>
