@@ -45,9 +45,9 @@
         /* Top Panel */
         .top-panel {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
             margin-bottom: 20px;
             background: var(--glass-background);
             backdrop-filter: blur(10px);
@@ -57,62 +57,11 @@
             box-shadow: var(--button-shadow);
         }
 
-        .back-button {
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 20px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: var(--glass-background);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .back-button:active {
-            transform: translateY(1px);
-        }
-
-        .add-car-button {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass-background);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .add-car-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .add-car-button:active {
-            transform: translateY(1px);
-        }
-
-        /* Main Title */
         .main-title {
             color: var(--text-primary);
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         /* Car List */
@@ -415,7 +364,7 @@
 
         .modal-buttons button {
             flex: 1;
-            padding: 14px 24px;
+            padding: 12px;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
@@ -431,7 +380,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
+            gap: 8px;
+        }
+
+        .modal-buttons button i {
+            font-size: 18px;
         }
 
         .modal-buttons button::before {
@@ -458,75 +411,24 @@
         }
 
         .save-button {
-            background: rgba(10, 132, 255, 0.3) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid rgba(10, 132, 255, 0.3) !important;
+            background: var(--tg-theme-button-color, rgba(10, 132, 255, 0.3)) !important;
+            color: var(--tg-theme-button-text-color, #ffffff) !important;
+            border: 1px solid var(--tg-theme-button-color, rgba(10, 132, 255, 0.3)) !important;
             box-shadow: 0 4px 12px rgba(10, 132, 255, 0.2);
-        }
-
-        .save-button:hover {
-            background: rgba(10, 132, 255, 0.4) !important;
-            border-color: rgba(10, 132, 255, 0.5) !important;
-            box-shadow: 0 6px 16px rgba(10, 132, 255, 0.3);
-        }
-
-        .save-button:active {
-            background: rgba(10, 132, 255, 0.5) !important;
-            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
         }
 
         .edit-button {
-            background: rgba(10, 132, 255, 0.3) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid rgba(10, 132, 255, 0.3) !important;
+            background: var(--tg-theme-button-color, rgba(10, 132, 255, 0.3)) !important;
+            color: var(--tg-theme-button-text-color, #ffffff) !important;
+            border: 1px solid var(--tg-theme-button-color, rgba(10, 132, 255, 0.3)) !important;
             box-shadow: 0 4px 12px rgba(10, 132, 255, 0.2);
         }
 
-        .edit-button:hover {
-            background: rgba(10, 132, 255, 0.4) !important;
-            border-color: rgba(10, 132, 255, 0.5) !important;
-            box-shadow: 0 6px 16px rgba(10, 132, 255, 0.3);
-        }
-
-        .edit-button:active {
-            background: rgba(10, 132, 255, 0.5) !important;
-            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
-        }
-
-        .cancel-button {
-            background: rgba(30, 34, 42, 0.5);
-            color: var(--text-primary) !important;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .cancel-button:hover {
-            background: rgba(30, 34, 42, 0.7);
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .cancel-button:active {
-            background: rgba(30, 34, 42, 0.8);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
         .delete-button {
-            background: rgba(255, 69, 58, 0.3) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid rgba(255, 69, 58, 0.3) !important;
+            background: var(--tg-theme-destructive-text-color, rgba(255, 69, 58, 0.3)) !important;
+            color: var(--tg-theme-button-text-color, #ffffff) !important;
+            border: 1px solid var(--tg-theme-destructive-text-color, rgba(255, 69, 58, 0.3)) !important;
             box-shadow: 0 4px 12px rgba(255, 69, 58, 0.2);
-        }
-
-        .delete-button:hover {
-            background: rgba(255, 69, 58, 0.4) !important;
-            border-color: rgba(255, 69, 58, 0.5) !important;
-            box-shadow: 0 6px 16px rgba(255, 69, 58, 0.3);
-        }
-
-        .delete-button:active {
-            background: rgba(255, 69, 58, 0.5) !important;
-            box-shadow: 0 2px 8px rgba(255, 69, 58, 0.2);
         }
 
         /* Toast Notification */
@@ -753,9 +655,7 @@
 <body>
     <div class="app-container">
         <div class="top-panel">
-            <a href="#" class="back-button"><i class="fas fa-arrow-left"></i></a>
             <h1 class="main-title">Мои авто</h1>
-            <button class="add-car-button"><i class="fas fa-plus"></i></button>
         </div>
         <div class="car-list" id="carList"></div>
     </div>
@@ -832,9 +732,9 @@
         <div class="modal-content">
             <div class="car-info"></div>
             <div class="modal-buttons">
-                <button class="edit-button">Редактировать</button>
-                <button class="delete-button">Удалить</button>
-                <button class="close-button">Закрыть</button>
+                <button class="edit-button"><i class="fas fa-edit"></i></button>
+                <button class="delete-button"><i class="fas fa-trash"></i></button>
+                <button class="close-button"><i class="fas fa-times"></i></button>
             </div>
         </div>
     </div>
@@ -1087,8 +987,8 @@
             });
 
             // Confirmation dialog
-            confirmationDialog.querySelector('.confirm-button').addEventListener('click', () => {
-                handleDeleteCar();
+            confirmationDialog.querySelector('.confirm-button').addEventListener('click', async () => {
+                await handleDeleteCar();
                 triggerHapticFeedback('heavy');
             });
             confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
@@ -1172,25 +1072,31 @@
                 triggerHapticFeedback('success');
                 
                 carInfo.classList.remove('editing');
-                viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
+                viewCarModal.querySelector('.edit-button i').className = 'fas fa-edit';
                 renderCarInfo(car);
             } else {
                 // Enter edit mode
                 carInfo.classList.add('editing');
-                viewCarModal.querySelector('.edit-button').textContent = 'Сохранить';
+                viewCarModal.querySelector('.edit-button i').className = 'fas fa-save';
                 renderCarInfoEditable(car);
             }
         }
 
         async function handleDeleteCar() {
-            cars.splice(currentCarIndex, 1);
-            await saveCars();
-            renderCars();
-            
-            confirmationDialog.style.display = 'none';
-            viewCarModal.style.display = 'none';
-            showToast('Автомобиль удален');
-            triggerHapticFeedback('success');
+            try {
+                console.log('Deleting car at index:', currentCarIndex);
+                cars.splice(currentCarIndex, 1);
+                await saveCars();
+                renderCars();
+                
+                confirmationDialog.style.display = 'none';
+                viewCarModal.style.display = 'none';
+                showToast('Автомобиль удален');
+                triggerHapticFeedback('success');
+            } catch (error) {
+                console.error('Error deleting car:', error);
+                alert('Ошибка при удалении автомобиля');
+            }
         }
 
         // UI Functions
@@ -1536,6 +1442,7 @@
 
         async function deleteCar(carId) {
             try {
+                console.log('Deleting car with ID:', carId);
                 const index = cars.findIndex(c => c.id === carId);
                 if (index !== -1) {
                     cars.splice(index, 1);
