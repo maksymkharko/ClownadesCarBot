@@ -568,23 +568,39 @@
         // Load cars from CloudStorage
         async function loadCars() {
             try {
+                console.log('Loading cars for user:', userId);
                 const storageKey = `cars_${userId}`;
-                const data = await tg.CloudStorage.getItem(storageKey);
                 
-                if (data) {
+                // Получаем все данные из хранилища
+                const allData = await tg.CloudStorage.getItems();
+                console.log('All storage data:', allData);
+                
+                // Ищем данные для текущего пользователя
+                const userData = allData[storageKey];
+                console.log('User data:', userData);
+                
+                if (userData) {
                     try {
-                        cars = typeof data === 'string' ? JSON.parse(data) : data;
-                        if (!Array.isArray(cars)) {
+                        // Пробуем распарсить данные
+                        const parsedData = typeof userData === 'string' ? JSON.parse(userData) : userData;
+                        console.log('Parsed data:', parsedData);
+                        
+                        if (Array.isArray(parsedData)) {
+                            cars = parsedData;
+                        } else {
+                            console.warn('Data is not an array, initializing empty array');
                             cars = [];
                         }
                     } catch (error) {
-                        console.error('Data parsing error:', error);
+                        console.error('Error parsing data:', error);
                         cars = [];
                     }
                 } else {
+                    console.log('No data found for user');
                     cars = [];
                 }
                 
+                console.log('Loaded cars:', cars);
                 renderCars();
             } catch (error) {
                 console.error('Loading error:', error);
@@ -597,8 +613,24 @@
         // Save cars to CloudStorage
         async function saveCars() {
             try {
+                console.log('Saving cars for user:', userId);
                 const storageKey = `cars_${userId}`;
-                await tg.CloudStorage.setItem(storageKey, JSON.stringify(cars));
+                
+                // Преобразуем данные в строку
+                const dataToSave = JSON.stringify(cars);
+                console.log('Data to save:', dataToSave);
+                
+                // Сохраняем данные
+                await tg.CloudStorage.setItem(storageKey, dataToSave);
+                
+                // Проверяем, что данные сохранились
+                const savedData = await tg.CloudStorage.getItem(storageKey);
+                console.log('Saved data:', savedData);
+                
+                if (!savedData) {
+                    throw new Error('Data was not saved properly');
+                }
+                
                 renderCars();
             } catch (error) {
                 console.error('Saving error:', error);
@@ -633,6 +665,7 @@
             e.preventDefault();
             
             try {
+                console.log('Adding new car');
                 const newCar = {
                     id: `${userId}_${Date.now()}`,
                     name: document.getElementById('carName').value,
@@ -651,7 +684,10 @@
                     link4: formatURL(document.getElementById('link4').value)
                 };
 
+                console.log('New car object:', newCar);
                 cars.push(newCar);
+                
+                // Сохраняем данные
                 await saveCars();
                 
                 closeModal('addCarModal');
