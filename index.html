@@ -473,13 +473,30 @@
         async function loadCars() {
             try {
                 console.log('Loading cars from CloudStorage...');
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available');
+                }
+                
                 const data = await tg.CloudStorage.getItem('cars');
-                console.log('Loaded data:', data);
-                cars = data ? JSON.parse(data) : [];
+                console.log('Raw data from CloudStorage:', data);
+                
+                if (!data) {
+                    console.log('No data found in CloudStorage, initializing empty array');
+                    cars = [];
+                } else {
+                    try {
+                        cars = JSON.parse(data);
+                        console.log('Parsed cars data:', cars);
+                    } catch (parseError) {
+                        console.error('Error parsing cars data:', parseError);
+                        cars = [];
+                    }
+                }
+                
                 renderCars();
             } catch (error) {
                 console.error('Error loading cars:', error);
-                alert('Ошибка загрузки данных');
+                alert('Ошибка загрузки данных: ' + error.message);
                 cars = [];
                 renderCars();
             }
@@ -488,13 +505,19 @@
         async function saveCars() {
             try {
                 console.log('Saving cars to CloudStorage...');
-                console.log('Cars to save:', cars);
-                await tg.CloudStorage.setItem('cars', JSON.stringify(cars));
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available');
+                }
+                
+                const carsData = JSON.stringify(cars);
+                console.log('Data to save:', carsData);
+                
+                await tg.CloudStorage.setItem('cars', carsData);
                 console.log('Cars saved successfully');
                 renderCars();
             } catch (error) {
                 console.error('Error saving cars:', error);
-                alert('Ошибка сохранения данных');
+                alert('Ошибка сохранения данных: ' + error.message);
             }
         }
         
@@ -917,30 +940,47 @@
         async function init() {
             try {
                 console.log('Initializing app...');
+                
+                // Initialize Telegram WebApp
                 tg.expand();
                 tg.enableClosingConfirmation();
                 
                 // Wait for Telegram WebApp to be ready
-                await new Promise(resolve => {
-                    if (tg.isReady) {
-                        resolve();
-                    } else {
-                        tg.onEvent('viewportChanged', resolve);
-                    }
-                });
+                if (!tg.isReady) {
+                    console.log('Waiting for Telegram WebApp to be ready...');
+                    await new Promise((resolve) => {
+                        const checkReady = () => {
+                            if (tg.isReady) {
+                                console.log('Telegram WebApp is ready');
+                                resolve();
+                            } else {
+                                setTimeout(checkReady, 100);
+                            }
+                        };
+                        checkReady();
+                    });
+                }
                 
-                console.log('Telegram WebApp is ready');
+                // Check if CloudStorage is available
+                if (!tg.CloudStorage) {
+                    throw new Error('CloudStorage is not available in this version of Telegram');
+                }
+                
+                console.log('Telegram WebApp initialized, loading cars...');
                 await loadCars();
                 console.log('Initialization completed');
             } catch (error) {
                 console.error('Initialization error:', error);
-                alert('Ошибка инициализации приложения');
+                alert('Ошибка инициализации приложения: ' + error.message);
             }
         }
         
         // Start the app
-        tg.ready();
-        init();
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting app...');
+            tg.ready();
+            init();
+        });
     </script>
 </body>
 </html>
