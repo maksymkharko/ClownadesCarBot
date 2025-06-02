@@ -5,7 +5,7 @@
     <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Мои авто</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@telegram-apps/sdk@latest/dist/index.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -394,7 +394,6 @@
         let userId = null;
 
         const tg = window.Telegram.WebApp;
-        const { cloudStorage } = window.TelegramAppsSDK;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -457,7 +456,7 @@
         async function loadCars() {
             try {
                 const storageKey = `cars_${userId}`;
-                const data = await cloudStorage.getItem(storageKey);
+                const data = await tg.CloudStorage.getItem(storageKey);
                 cars = data ? JSON.parse(data) : [];
                 renderCars();
             } catch (error) {
@@ -471,7 +470,7 @@
         async function saveCars() {
             try {
                 const storageKey = `cars_${userId}`;
-                await cloudStorage.setItem(storageKey, JSON.stringify(cars));
+                await tg.CloudStorage.setItem(storageKey, JSON.stringify(cars));
                 renderCars();
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
@@ -709,19 +708,13 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Cloud Storage Support Check
-        async function checkCloudStorageSupport() {
-            if (!cloudStorage.isSupported()) {
-                showToast('Cloud Storage не поддерживается в этой версии Telegram', 'error');
-                return false;
-            }
-            return true;
-        }
-
         // Start the application
         async function init() {
-            if (!await checkCloudStorageSupport()) return;
-            
+            if (!tg.CloudStorage) {
+                showToast('Cloud Storage не поддерживается в этой версии Telegram', 'error');
+                return;
+            }
+
             userId = tg.initDataUnsafe?.user?.id;
             if (!userId) {
                 showToast('Ошибка: ID пользователя не найден', 'error');
