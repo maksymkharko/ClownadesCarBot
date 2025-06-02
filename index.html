@@ -11,11 +11,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --background-color: #f5f5f5;
-            --glass-background: rgba(255, 255, 255, 0.9);
-            --text-primary: #333;
-            --text-secondary: #666;
-            --accent-color: #2481cc;
+            --background-color: var(--tg-theme-bg-color, #f5f5f5);
+            --glass-background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.9));
+            --text-primary: var(--tg-theme-text-color, #333);
+            --text-secondary: var(--tg-theme-hint-color, #666);
+            --accent-color: var(--tg-theme-button-color, #2481cc);
+            --accent-text: var(--tg-theme-button-text-color, #ffffff);
             --accent-red: #ff3b30;
             --accent-green: #34c759;
             --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -44,6 +45,9 @@
             margin: 0 auto;
             padding: 16px;
             padding-bottom: 80px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .top-panel {
@@ -414,6 +418,44 @@
             opacity: 0.9;
         }
 
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        /* Dark theme specific adjustments */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+
+            .timer {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .description-text {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            input, textarea {
+                background: var(--glass-background);
+                color: var(--text-primary);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .cancel-button {
+                background: var(--glass-background);
+            }
+        }
+
         @media (max-width: 600px) {
             .app-container {
                 padding: 12px;
@@ -452,6 +494,10 @@
 
         <div class="car-list" id="carList">
             <!-- Cars will be added here dynamically -->
+        </div>
+
+        <div class="footer">
+            <a href="https://t.me/clownades" target="_blank">@clownades</a>
         </div>
     </div>
 
@@ -572,15 +618,36 @@
 
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
+        
+        // Apply Telegram theme
+        function applyTheme() {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
+            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color);
+            document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color);
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color);
+        }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCars();
-            setupEventListeners();
-            setupTouchHandlers();
-            setupKeyboardHandling();
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                tg.expand();
+                tg.enableClosingConfirmation();
+                applyTheme();
+                
+                // Listen for theme changes
+                tg.onEvent('themeChanged', applyTheme);
+                
+                await loadCars();
+                setupEventListeners();
+                setupTouchHandlers();
+                setupKeyboardHandling();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showToast('Ошибка инициализации приложения');
+            }
         });
 
         // Touch handling variables
@@ -728,36 +795,42 @@
             } catch (e) {
                 console.error('Error saving cars:', e);
                 showToast('Ошибка сохранения данных');
+                throw e; // Re-throw to handle in the calling function
             }
         }
 
         async function handleAddCar(e) {
             e.preventDefault();
             
-            const newCar = {
-                name: document.getElementById('carName').value,
-                mileage: parseInt(document.getElementById('mileage').value),
-                vin: document.getElementById('vin').value.toUpperCase(),
-                plate: document.getElementById('plate').value.toUpperCase(),
-                purchaseDate: document.getElementById('purchaseDate').value,
-                lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
-                lastTimingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
-                insuranceEndDate: document.getElementById('insuranceEnd').value,
-                maintenanceEndDate: document.getElementById('maintenanceEnd').value,
-                description: document.getElementById('description').value || '',
-                link1: formatURL(document.getElementById('link1').value),
-                link2: formatURL(document.getElementById('link2').value),
-                link3: formatURL(document.getElementById('link3').value),
-                link4: formatURL(document.getElementById('link4').value)
-            };
+            try {
+                const newCar = {
+                    name: document.getElementById('carName').value,
+                    mileage: parseInt(document.getElementById('mileage').value),
+                    vin: document.getElementById('vin').value.toUpperCase(),
+                    plate: document.getElementById('plate').value.toUpperCase(),
+                    purchaseDate: document.getElementById('purchaseDate').value,
+                    lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
+                    lastTimingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
+                    insuranceEndDate: document.getElementById('insuranceEnd').value,
+                    maintenanceEndDate: document.getElementById('maintenanceEnd').value,
+                    description: document.getElementById('description').value || '',
+                    link1: formatURL(document.getElementById('link1').value),
+                    link2: formatURL(document.getElementById('link2').value),
+                    link3: formatURL(document.getElementById('link3').value),
+                    link4: formatURL(document.getElementById('link4').value)
+                };
 
-            cars.push(newCar);
-            await saveCars();
-            renderCarList();
-            
-            hideModal(addCarModal);
-            addCarForm.reset();
-            showToast('Автомобиль добавлен');
+                cars.push(newCar);
+                await saveCars();
+                renderCarList();
+                
+                hideModal(addCarModal);
+                addCarForm.reset();
+                showToast('Автомобиль добавлен');
+            } catch (error) {
+                console.error('Error adding car:', error);
+                showToast('Ошибка при добавлении автомобиля');
+            }
         }
 
         async function handleEditCar() {
