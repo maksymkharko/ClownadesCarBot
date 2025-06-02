@@ -45,7 +45,7 @@
         /* Top Panel */
         .top-panel {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             padding: 10px;
             margin-bottom: 20px;
@@ -62,6 +62,32 @@
             text-align: center;
             font-size: 24px;
             font-weight: 600;
+        }
+
+        .add-car-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-car-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .add-car-button:active {
+            transform: translateY(1px);
         }
 
         /* Car List */
@@ -655,7 +681,9 @@
 <body>
     <div class="app-container">
         <div class="top-panel">
+            <div style="width: 40px"></div>
             <h1 class="main-title">Мои авто</h1>
+            <button class="add-car-button"><i class="fas fa-plus"></i></button>
         </div>
         <div class="car-list" id="carList"></div>
     </div>
@@ -959,42 +987,69 @@
         // Event Listeners Setup
         function setupEventListeners() {
             // Add car button
-            document.querySelector('.add-car-button').addEventListener('click', () => {
-                addCarModal.style.display = 'block';
-                triggerHapticFeedback('light');
-            });
+            const addCarButton = document.querySelector('.add-car-button');
+            if (addCarButton) {
+                addCarButton.addEventListener('click', () => {
+                    addCarModal.style.display = 'block';
+                    triggerHapticFeedback('light');
+                });
+            }
 
             // Add car form
-            addCarForm.addEventListener('submit', handleAddCar);
-            addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
-                addCarModal.style.display = 'none';
-                addCarForm.reset();
-                triggerHapticFeedback('light');
-            });
+            if (addCarForm) {
+                addCarForm.addEventListener('submit', handleAddCar);
+            }
+
+            const cancelButton = addCarModal.querySelector('.cancel-button');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', () => {
+                    addCarModal.style.display = 'none';
+                    addCarForm.reset();
+                    triggerHapticFeedback('light');
+                });
+            }
 
             // View car modal buttons
-            viewCarModal.querySelector('.edit-button').addEventListener('click', () => {
-                handleEditCar();
-                triggerHapticFeedback('medium');
-            });
-            viewCarModal.querySelector('.delete-button').addEventListener('click', () => {
-                showDeleteConfirmation();
-                triggerHapticFeedback('medium');
-            });
-            viewCarModal.querySelector('.close-button').addEventListener('click', () => {
-                viewCarModal.style.display = 'none';
-                triggerHapticFeedback('light');
-            });
+            const editButton = viewCarModal.querySelector('.edit-button');
+            if (editButton) {
+                editButton.addEventListener('click', () => {
+                    handleEditCar();
+                    triggerHapticFeedback('medium');
+                });
+            }
+
+            const deleteButton = viewCarModal.querySelector('.delete-button');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => {
+                    showDeleteConfirmation();
+                    triggerHapticFeedback('medium');
+                });
+            }
+
+            const closeButton = viewCarModal.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    viewCarModal.style.display = 'none';
+                    triggerHapticFeedback('light');
+                });
+            }
 
             // Confirmation dialog
-            confirmationDialog.querySelector('.confirm-button').addEventListener('click', async () => {
-                await handleDeleteCar();
-                triggerHapticFeedback('heavy');
-            });
-            confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
-                confirmationDialog.style.display = 'none';
-                triggerHapticFeedback('light');
-            });
+            const confirmButton = confirmationDialog.querySelector('.confirm-button');
+            if (confirmButton) {
+                confirmButton.addEventListener('click', async () => {
+                    await handleDeleteCar();
+                    triggerHapticFeedback('heavy');
+                });
+            }
+
+            const cancelConfirmButton = confirmationDialog.querySelector('.cancel-button');
+            if (cancelConfirmButton) {
+                cancelConfirmButton.addEventListener('click', () => {
+                    confirmationDialog.style.display = 'none';
+                    triggerHapticFeedback('light');
+                });
+            }
 
             // Close modals when clicking outside
             window.addEventListener('click', (e) => {
