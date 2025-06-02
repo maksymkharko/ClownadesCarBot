@@ -953,17 +953,13 @@
                 console.log('Loading cars from CloudStorage...');
                 console.log('Current cars array:', cars);
                 
-                // Try to get all items from CloudStorage
-                const allItems = await tg.CloudStorage.getItems();
-                console.log('All CloudStorage items:', allItems);
+                const data = await tg.CloudStorage.getItem('cars');
+                console.log('Raw data from CloudStorage:', data);
                 
-                const carsData = allItems['cars'];
-                console.log('Cars data from CloudStorage:', carsData);
-                
-                if (carsData) {
+                if (data) {
                     try {
                         // Handle both string and object data
-                        const parsedData = typeof carsData === 'string' ? JSON.parse(carsData) : carsData;
+                        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
                         console.log('Parsed cars data:', parsedData);
                         
                         if (Array.isArray(parsedData)) {
@@ -998,10 +994,17 @@
                 const data = JSON.stringify(cars);
                 console.log('Data to save:', data);
                 
-                // Save using setItems instead of setItem
-                await tg.CloudStorage.setItems({ 'cars': data });
+                await tg.CloudStorage.setItem('cars', data);
                 console.log('Data saved successfully');
-                renderCars();
+                
+                // Verify the save
+                const savedData = await tg.CloudStorage.getItem('cars');
+                if (savedData) {
+                    console.log('Verified saved data:', savedData);
+                    renderCars();
+                } else {
+                    throw new Error('Failed to verify saved data');
+                }
             } catch (error) {
                 console.error('Error saving cars:', error);
                 alert('Ошибка сохранения данных');
