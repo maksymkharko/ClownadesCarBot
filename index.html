@@ -877,6 +877,7 @@
         let currentCarIndex = -1;
         let editingCarId = null;
         let updatingMileageCarId = null;
+        let userId = null;
 
         // Telegram Web App
         const tg = window.Telegram.WebApp;
@@ -908,6 +909,13 @@
                 console.log('Telegram WebApp version:', tg.version);
                 console.log('CloudStorage available:', !!tg.CloudStorage);
                 
+                // Get user ID
+                userId = tg.initDataUnsafe?.user?.id;
+                if (!userId) {
+                    throw new Error('User ID not available');
+                }
+                console.log('User ID:', userId);
+                
                 // Wait for Telegram WebApp to be ready
                 if (!tg.isReady) {
                     console.log('Waiting for Telegram WebApp to be ready...');
@@ -926,18 +934,6 @@
                     throw new Error('CloudStorage is not available');
                 }
                 
-                // Test CloudStorage
-                try {
-                    console.log('Testing CloudStorage...');
-                    await tg.CloudStorage.setItem('test', 'test');
-                    const testValue = await tg.CloudStorage.getItem('test');
-                    console.log('CloudStorage test result:', testValue);
-                    await tg.CloudStorage.removeItem('test');
-                } catch (error) {
-                    console.error('CloudStorage test failed:', error);
-                    throw new Error('CloudStorage test failed');
-                }
-                
                 setupEventListeners();
                 await loadCars();
                 console.log('Initialization complete');
@@ -953,7 +949,8 @@
                 console.log('Loading cars from CloudStorage...');
                 console.log('Current cars array:', cars);
                 
-                const data = await tg.CloudStorage.getItem('cars');
+                const storageKey = `cars_${userId}`;
+                const data = await tg.CloudStorage.getItem(storageKey);
                 console.log('Raw data from CloudStorage:', data);
                 
                 if (data) {
@@ -994,11 +991,12 @@
                 const data = JSON.stringify(cars);
                 console.log('Data to save:', data);
                 
-                await tg.CloudStorage.setItem('cars', data);
+                const storageKey = `cars_${userId}`;
+                await tg.CloudStorage.setItem(storageKey, data);
                 console.log('Data saved successfully');
                 
                 // Verify the save
-                const savedData = await tg.CloudStorage.getItem('cars');
+                const savedData = await tg.CloudStorage.getItem(storageKey);
                 if (savedData) {
                     console.log('Verified saved data:', savedData);
                     renderCars();
@@ -1104,7 +1102,7 @@
             
             try {
                 const newCar = {
-                    id: Date.now(), // Add unique ID
+                    id: userId + '_' + Date.now(), // Use user ID in car ID
                     name: document.getElementById('carName').value,
                     mileage: parseInt(document.getElementById('mileage').value),
                     vin: document.getElementById('vin').value.toUpperCase(),
