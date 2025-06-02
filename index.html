@@ -941,7 +941,8 @@
                 
                 if (data) {
                     try {
-                        const parsedData = JSON.parse(data);
+                        // Handle both string and object data
+                        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
                         console.log('Parsed cars data:', parsedData);
                         cars = Array.isArray(parsedData) ? parsedData : [];
                     } catch (parseError) {
@@ -975,7 +976,11 @@
                 const savedData = await tg.CloudStorage.getItem('cars');
                 console.log('Verified saved data:', savedData);
                 
-                if (savedData !== data) {
+                // Compare parsed data instead of raw strings
+                const savedCars = typeof savedData === 'string' ? JSON.parse(savedData) : savedData;
+                const currentCars = cars;
+                
+                if (JSON.stringify(savedCars) !== JSON.stringify(currentCars)) {
                     throw new Error('Data verification failed');
                 }
                 
