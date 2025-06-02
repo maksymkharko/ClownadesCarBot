@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мои авто</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Clownades">
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="src/styles/app1.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            touch-action: manipulation;
+        }
+        input, textarea {
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Panel -->
+        <div class="top-panel">
+            <div class="control-buttons">
+                <button class="add-car-button">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <h1 class="main-title">Мои авто</h1>
+
+        <!-- Car List -->
+        <div class="car-list" id="carList">
+            <!-- Cars will be added here dynamically -->
+        </div>
+    </div>
+
+    <!-- Add Car Modal -->
+    <div class="modal" id="addCarModal">
+        <div class="modal-content">
+            <h2>Добавить автомобиль</h2>
+            <form id="addCarForm">
+                <div class="form-group">
+                    <label for="carName">Название машины*</label>
+                    <input type="text" id="carName" required>
+                </div>
+                <div class="form-group">
+                    <label for="mileage">Актуальный пробег (км)*</label>
+                    <input type="number" id="mileage" required>
+                </div>
+                <div class="form-group">
+                    <label for="vin">VIN*</label>
+                    <input type="text" id="vin" required>
+                </div>
+                <div class="form-group">
+                    <label for="plate">Номер машины*</label>
+                    <input type="text" id="plate" required>
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Дата покупки*</label>
+                    <input type="date" id="purchaseDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastOilChange">Пробег на последней замене масла (км)*</label>
+                    <input type="number" id="lastOilChange" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastTimingBelt">Пробег на последней замене ГРМ (км)*</label>
+                    <input type="number" id="lastTimingBelt" required>
+                </div>
+                <div class="form-group">
+                    <label for="insuranceEnd">Дата окончания страховки*</label>
+                    <input type="date" id="insuranceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="maintenanceEnd">Дата окончания ТО*</label>
+                    <input type="date" id="maintenanceEnd" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <textarea id="description" rows="4" placeholder="Добавьте любую дополнительную информацию"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="link1">Ссылка 1</label>
+                    <input type="url" id="link1">
+                </div>
+                <div class="form-group">
+                    <label for="link2">Ссылка 2</label>
+                    <input type="url" id="link2">
+                </div>
+                <div class="form-group">
+                    <label for="link3">Ссылка 3</label>
+                    <input type="url" id="link3">
+                </div>
+                <div class="form-group">
+                    <label for="link4">Ссылка 4</label>
+                    <input type="url" id="link4">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="save-button">Сохранить</button>
+                    <button type="button" class="cancel-button">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View/Edit Car Modal -->
+    <div class="modal" id="viewCarModal">
+        <div class="modal-content">
+            <h2>Информация об автомобиле</h2>
+            <div class="car-info">
+                <!-- Car info will be populated dynamically -->
+            </div>
+            <div class="modal-buttons">
+                <button class="edit-button">Редактировать</button>
+                <button class="delete-button">Удалить</button>
+                <button class="close-button">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="dialog-content">
+            <p>Вы уверены, что хотите удалить этот автомобиль?</p>
+            <div class="dialog-buttons">
+                <button class="confirm-button">Удалить</button>
+                <button class="cancel-button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Constants
+        const OIL_CHANGE_INTERVAL = 10000; // 10,000 km
+        const WARNING_DAYS = 7;
+
+        // DOM Elements
+        const carList = document.getElementById('carList');
+        const addCarModal = document.getElementById('addCarModal');
+        const viewCarModal = document.getElementById('viewCarModal');
+        const confirmationDialog = document.getElementById('confirmationDialog');
+        const toast = document.getElementById('toast');
+        const addCarForm = document.getElementById('addCarForm');
+
+        // State
+        let cars = [];
+        let currentCarIndex = -1;
+
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCars();
+            renderCarList();
+            setupEventListeners();
+        });
+
+        // Event Listeners Setup
+        function setupEventListeners() {
+            // Add car button
+            document.querySelector('.add-car-button').addEventListener('click', () => {
+                addCarModal.style.display = 'block';
+            });
+
+            // Add car form
+            addCarForm.addEventListener('submit', handleAddCar);
+            addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
+                addCarModal.style.display = 'none';
+                addCarForm.reset();
+            });
+
+            // View car modal buttons
+            viewCarModal.querySelector('.edit-button').addEventListener('click', handleEditCar);
+            viewCarModal.querySelector('.delete-button').addEventListener('click', showDeleteConfirmation);
+            viewCarModal.querySelector('.close-button').addEventListener('click', () => {
+                viewCarModal.style.display = 'none';
+            });
+
+            // Confirmation dialog
+            confirmationDialog.querySelector('.confirm-button').addEventListener('click', handleDeleteCar);
+            confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
+                confirmationDialog.style.display = 'none';
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === addCarModal) addCarModal.style.display = 'none';
+                if (e.target === viewCarModal) viewCarModal.style.display = 'none';
+            });
+        }
+
+        // Car Management Functions
+        async function loadCars() {
+            try {
+                const data = await tg.CloudStorage.getItem('cars');
+                cars = data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error('Error loading cars:', e);
+                cars = [];
+            }
+        }
+
+        async function saveCars() {
+            try {
+                await tg.CloudStorage.setItem('cars', JSON.stringify(cars));
+            } catch (e) {
+                console.error('Error saving cars:', e);
+                showToast('Ошибка сохранения данных');
+            }
+        }
+
+        async function handleAddCar(e) {
+            e.preventDefault();
+            
+            const newCar = {
+                name: document.getElementById('carName').value,
+                mileage: parseInt(document.getElementById('mileage').value),
+                vin: document.getElementById('vin').value.toUpperCase(),
+                plate: document.getElementById('plate').value.toUpperCase(),
+                purchaseDate: document.getElementById('purchaseDate').value,
+                lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
+                lastTimingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
+                insuranceEndDate: document.getElementById('insuranceEnd').value,
+                maintenanceEndDate: document.getElementById('maintenanceEnd').value,
+                description: document.getElementById('description').value || '',
+                link1: formatURL(document.getElementById('link1').value),
+                link2: formatURL(document.getElementById('link2').value),
+                link3: formatURL(document.getElementById('link3').value),
+                link4: formatURL(document.getElementById('link4').value)
+            };
+
+            cars.push(newCar);
+            await saveCars();
+            renderCarList();
+            
+            addCarModal.style.display = 'none';
+            addCarForm.reset();
+            showToast('Автомобиль добавлен');
+        }
+
+        async function handleEditCar() {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            const car = cars[currentCarIndex];
+
+            if (carInfo.classList.contains('editing')) {
+                // Save changes
+                car.name = carInfo.querySelector('[data-field="name"]').value;
+                car.mileage = parseInt(carInfo.querySelector('[data-field="mileage"]').value);
+                car.vin = carInfo.querySelector('[data-field="vin"]').value.toUpperCase();
+                car.plate = carInfo.querySelector('[data-field="plate"]').value.toUpperCase();
+                car.purchaseDate = carInfo.querySelector('[data-field="purchaseDate"]').value;
+                car.lastOilChangeMileage = parseInt(carInfo.querySelector('[data-field="lastOilChangeMileage"]').value);
+                car.lastTimingBeltMileage = parseInt(carInfo.querySelector('[data-field="lastTimingBeltMileage"]').value);
+                car.insuranceEndDate = carInfo.querySelector('[data-field="insuranceEndDate"]').value;
+                car.maintenanceEndDate = carInfo.querySelector('[data-field="maintenanceEndDate"]').value;
+                car.description = carInfo.querySelector('[data-field="description"]').value;
+                car.link1 = formatURL(carInfo.querySelector('[data-field="link1"]').value);
+                car.link2 = formatURL(carInfo.querySelector('[data-field="link2"]').value);
+                car.link3 = formatURL(carInfo.querySelector('[data-field="link3"]').value);
+                car.link4 = formatURL(carInfo.querySelector('[data-field="link4"]').value);
+
+                await saveCars();
+                renderCarList();
+                showToast('Изменения сохранены');
+                
+                carInfo.classList.remove('editing');
+                viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
+                renderCarInfo(car);
+            } else {
+                // Enter edit mode
+                carInfo.classList.add('editing');
+                viewCarModal.querySelector('.edit-button').textContent = 'Сохранить';
+                renderCarInfoEditable(car);
+            }
+        }
+
+        async function handleDeleteCar() {
+            cars.splice(currentCarIndex, 1);
+            await saveCars();
+            renderCarList();
+            
+            confirmationDialog.style.display = 'none';
+            viewCarModal.style.display = 'none';
+            showToast('Автомобиль удален');
+        }
+
+        // UI Functions
+        function renderCarList() {
+            carList.innerHTML = '';
+            cars.forEach((car, index) => {
+                const carElement = createCarElement(car, index);
+                carList.appendChild(carElement);
+            });
+        }
+
+        function createCarElement(car, index) {
+            const div = document.createElement('div');
+            div.className = 'car-item';
+            div.innerHTML = `
+                <div class="car-name">${car.name}</div>
+                <div class="timer-container">
+                    <div class="timer ${isDateWarning(car.insuranceEndDate) ? 'warning' : ''}">
+                        <div class="timer-label">Страховка</div>
+                        <div class="timer-value">${formatTimeRemaining(car.insuranceEndDate)}</div>
+                    </div>
+                    <div class="timer ${isDateWarning(car.maintenanceEndDate) ? 'warning' : ''}">
+                        <div class="timer-label">ТО</div>
+                        <div class="timer-value">${formatTimeRemaining(car.maintenanceEndDate)}</div>
+                    </div>
+                    <div class="timer">
+                        <div class="timer-label">До замены масла</div>
+                        <div class="timer-value">${formatMileageRemaining(car.mileage, car.lastOilChangeMileage)} км</div>
+                    </div>
+                </div>
+            `;
+
+            div.addEventListener('click', () => showCarDetails(index));
+            return div;
+        }
+
+        function renderCarInfo(car) {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            carInfo.innerHTML = `
+                <h3>${car.name}</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>VIN:</label>
+                        <div class="vin-container">
+                            <span>${car.vin}</span>
+                            <button class="copy-button" onclick="copyVIN('${car.vin}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>Номер:</label>
+                        <span>${car.plate}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Пробег:</label>
+                        <span>${car.mileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Дата покупки:</label>
+                        <span>${formatDate(car.purchaseDate)}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Последняя замена масла:</label>
+                        <span>${car.lastOilChangeMileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Последняя замена ГРМ:</label>
+                        <span>${car.lastTimingBeltMileage} км</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Страховка до:</label>
+                        <span>${formatDate(car.insuranceEndDate)}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>ТО до:</label>
+                        <span>${formatDate(car.maintenanceEndDate)}</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Описание:</label>
+                        <div class="description-text">${car.description || 'Нет описания'}</div>
+                        <button class="edit-description-button" onclick="editDescription(${currentCarIndex})">
+                            <i class="fas fa-edit"></i> Редактировать описание
+                        </button>
+                    </div>
+                    ${renderLinks(car)}
+                </div>
+            `;
+        }
+
+        function renderCarInfoEditable(car) {
+            const carInfo = viewCarModal.querySelector('.car-info');
+            carInfo.innerHTML = `
+                <div class="form-group">
+                    <label>Название:</label>
+                    <input type="text" data-field="name" value="${car.name}" required>
+                </div>
+                <div class="form-group">
+                    <label>VIN:</label>
+                    <input type="text" data-field="vin" value="${car.vin}" required>
+                </div>
+                <div class="form-group">
+                    <label>Номер:</label>
+                    <input type="text" data-field="plate" value="${car.plate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Пробег:</label>
+                    <input type="number" data-field="mileage" value="${car.mileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Дата покупки:</label>
+                    <input type="date" data-field="purchaseDate" value="${car.purchaseDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Последняя замена масла:</label>
+                    <input type="number" data-field="lastOilChangeMileage" value="${car.lastOilChangeMileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Последняя замена ГРМ:</label>
+                    <input type="number" data-field="lastTimingBeltMileage" value="${car.lastTimingBeltMileage}" required>
+                </div>
+                <div class="form-group">
+                    <label>Страховка до:</label>
+                    <input type="date" data-field="insuranceEndDate" value="${car.insuranceEndDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>ТО до:</label>
+                    <input type="date" data-field="maintenanceEndDate" value="${car.maintenanceEndDate}" required>
+                </div>
+                <div class="form-group">
+                    <label>Описание:</label>
+                    <textarea data-field="description" rows="4">${car.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 1:</label>
+                    <input type="url" data-field="link1" value="${car.link1 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 2:</label>
+                    <input type="url" data-field="link2" value="${car.link2 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 3:</label>
+                    <input type="url" data-field="link3" value="${car.link3 || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка 4:</label>
+                    <input type="url" data-field="link4" value="${car.link4 || ''}">
+                </div>
+            `;
+        }
+
+        function renderLinks(car) {
+            let linksHtml = '';
+            for (let i = 1; i <= 4; i++) {
+                const link = car[`link${i}`];
+                if (link) {
+                    linksHtml += `
+                        <div class="info-item">
+                            <label>Ссылка ${i}:</label>
+                            <a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>
+                        </div>
+                    `;
+                }
+            }
+            return linksHtml;
+        }
+
+        function showCarDetails(index) {
+            currentCarIndex = index;
+            const car = cars[index];
+            renderCarInfo(car);
+            viewCarModal.style.display = 'block';
+        }
+
+        function showDeleteConfirmation() {
+            confirmationDialog.style.display = 'block';
+        }
+
+        function copyVIN(vin) {
+            navigator.clipboard.writeText(vin).then(() => {
+                showToast('VIN скопирован');
+            }).catch(err => {
+                console.error('Failed to copy VIN:', err);
+                showToast('Ошибка копирования VIN');
+            });
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('ru-RU');
+        }
+
+        function formatTimeRemaining(dateString) {
+            const endDate = new Date(dateString);
+            const now = new Date();
+            const diffTime = endDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? `${diffDays} дн` : 'Истекло';
+        }
+
+        function formatMileageRemaining(currentMileage, lastChangeMileage) {
+            const remaining = OIL_CHANGE_INTERVAL - (currentMileage - lastChangeMileage);
+            return remaining > 0 ? remaining : 0;
+        }
+
+        function isDateWarning(dateString) {
+            const endDate = new Date(dateString);
+            const now = new Date();
+            const diffTime = endDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= WARNING_DAYS && diffDays > 0;
+        }
+
+        async function editDescription(index) {
+            const car = cars[index];
+            const descriptionText = document.querySelector('.description-text');
+            const editButton = document.querySelector('.edit-description-button');
+            
+            if (descriptionText) {
+                const textarea = document.createElement('textarea');
+                textarea.className = 'description-edit';
+                textarea.value = car.description || '';
+                descriptionText.replaceWith(textarea);
+                textarea.focus();
+                
+                editButton.textContent = 'Сохранить';
+                editButton.onclick = async () => {
+                    car.description = textarea.value;
+                    await saveCars();
+                    renderCarInfo(car);
+                    showToast('Описание обновлено');
+                };
+            }
+        }
+
+        function formatURL(url) {
+            if (!url) return '';
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                return 'https://' + url;
+            }
+            return url;
+        }
+    </script>
+</body>
+</html> 
