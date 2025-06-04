@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Подписки</title>
+  <title>Мои авто</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     :root {
       --bg-color: var(--tg-theme-bg-color, #18222d);
@@ -31,7 +32,7 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 12px;
-      padding-top: 134px; /* Увеличено на 40px из-за top-spacer */
+      padding-top: 104px;
       padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
@@ -39,7 +40,7 @@
     }
 
     .top-spacer {
-      height: 90px;
+      height: 40px;
       width: 100%;
       background-color: transparent;
       position: fixed;
@@ -48,9 +49,9 @@
       z-index: 99;
     }
 
-    .header {
+    .top-panel {
       position: fixed;
-      top: 90px; /* Сдвинут вниз на высоту top-spacer */
+      top: 40px;
       left: 0;
       right: 0;
       padding: 12px 16px;
@@ -63,256 +64,111 @@
       height: 52px;
     }
 
-    .header-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-left: 8px;
+    .back-button {
+      color: var(--accent-color);
+      font-size: 20px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
     }
 
-    .add-btn {
+    .add-car-button {
       width: 36px;
       height: 36px;
       border-radius: 50%;
       background-color: var(--accent-color);
       color: white;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      border: none;
       cursor: pointer;
       transition: var(--transition);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
-    .add-btn:active {
+    .add-car-button:active {
       transform: scale(0.92);
       opacity: 0.9;
     }
 
-    .stats {
-      background-color: var(--card-color);
-      padding: 16px;
-      border-radius: var(--border-radius);
+    .main-title {
+      font-size: 24px;
+      font-weight: 600;
       margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .car-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--accent-color);
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--hint-color);
-    }
-
-    .stat-count {
-      font-size: 16px;
-      color: var(--text-color);
-      opacity: 0.8;
-    }
-
-    .subscriptions-list {
-      margin-bottom: 12px;
-    }
-
-    .list-item-container {
-      position: relative;
-      width: 100%;
-      margin-bottom: 8px;
-      overflow: hidden;
+    .car-item {
+      background-color: var(--card-color);
+      padding: 12px 14px;
       border-radius: var(--border-radius);
-      min-height: 72px;
-      transition: transform 0.2s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition);
     }
 
-    .list-item-container:active {
+    .car-item:active {
       transform: scale(0.98);
     }
 
-    .swipeable-container {
-      display: flex;
-      width: 100%;
-      transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
-      will-change: transform;
-    }
-
-    .subscription-item {
-      background-color: var(--card-color);
-      padding: 12px 14px;
-      width: 100%;
-      position: relative;
-      z-index: 1;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      min-height: 72px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .delete-action {
-      position: absolute;
-      right: -72px;
-      top: 0;
-      bottom: 0;
-      width: 72px;
-      background-color: var(--danger-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
+    .car-name {
+      font-size: 16px;
       font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 0;
+      margin-bottom: 8px;
     }
 
-    .subscription-name {
-      font-weight: 600;
-      font-size: 15px;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      align-items: center;
-    }
-
-    .service-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      background-color: rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 8px;
-      flex-shrink: 0;
-      font-size: 12px;
-    }
-
-    .service-name-wrapper {
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .service-name {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .subscription-price {
-      font-weight: 700;
-      color: var(--accent-color);
-      flex-shrink: 0;
-      margin-left: 8px;
-    }
-
-    .subscription-details {
+    .timer-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      font-size: 12px;
-      color: var(--hint-color);
+      gap: 8px;
     }
 
-    .detail-badge {
+    .timer {
       background: rgba(255, 255, 255, 0.1);
-      padding: 4px 8px;
+      padding: 8px;
       border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
+      font-size: 12px;
+      flex: 1;
+      text-align: center;
     }
 
-    .days-left {
+    .timer.warning {
+      background: rgba(255, 159, 67, 0.2);
+      color: var(--warning-color);
+    }
+
+    .timer-label {
+      color: var(--hint-color);
+      margin-bottom: 4px;
+    }
+
+    .timer-value {
       font-weight: 600;
     }
 
-    .days-left.warning {
-      color: var(--warning-color);
-      animation: pulse 1.5s infinite;
-    }
-
-    .days-left.danger {
-      color: var(--danger-color);
-      animation: pulse 1s infinite;
-    }
-
-    .days-left.success {
-      color: var(--success-color);
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
-    .footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: var(--card-color);
-      padding: 10px 16px;
-      font-size: 12px;
-      color: var(--hint-color);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      height: 47px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .author-link {
-      color: var(--accent-color);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .storage-usage {
-      color: var(--text-color);
-      font-weight: 500;
-    }
-
-    .scroll-spacer {
-      height: 60px;
-      width: 100%;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .modal-overlay {
+    .modal {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
       background-color: rgba(0, 0, 0, 0.5);
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
     }
 
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: all;
+    .modal.active {
+      display: flex;
     }
 
     .modal-content {
@@ -321,49 +177,28 @@
       max-width: 400px;
       border-radius: var(--border-radius);
       padding: 18px;
-      transform: translateY(10px);
-      transition: all 0.25s ease;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 
-    .modal-overlay.active .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .modal-title {
+    .modal-content h2 {
       font-size: 18px;
       font-weight: 600;
+      margin-bottom: 16px;
     }
 
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-color);
-      font-size: 22px;
-      cursor: pointer;
-      padding: 6px;
-      opacity: 0.7;
-    }
-
-    .form-row {
+    .form-group {
       margin-bottom: 14px;
     }
 
-    .form-label {
+    .form-group label {
       display: block;
       margin-bottom: 6px;
       font-size: 13px;
       color: var(--hint-color);
     }
 
-    .form-input {
+    .form-group input,
+    .form-group textarea {
       width: 100%;
       padding: 12px;
       border-radius: var(--border-radius);
@@ -374,125 +209,317 @@
       transition: var(--transition);
     }
 
-    .form-input:focus {
+    .form-group input:focus,
+    .form-group textarea:focus {
       outline: none;
       background-color: rgba(255, 255, 255, 0.15);
     }
 
-    .submit-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: var(--border-radius);
-      border: none;
-      background-color: var(--accent-color);
-      color: white;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: var(--transition);
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
     }
 
-    .submit-btn:active {
+    .save-button,
+    .edit-button,
+    .delete-button,
+    .close-button,
+    .cancel-button,
+    .confirm-button,
+    .save-description-button {
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      flex: 1;
+    }
+
+    .save-button,
+    .edit-button,
+    .confirm-button,
+    .save-description-button {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .delete-button {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
+    .close-button,
+    .cancel-button {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+    }
+
+    .save-button:active,
+    .edit-button:active,
+    .delete-button:active,
+    .close-button:active,
+    .cancel-button:active,
+    .confirm-button:active,
+    .save-description-button:active {
       transform: scale(0.98);
       opacity: 0.9;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--hint-color);
-      font-size: 14px;
-    }
-
-    .hide-keyboard-area {
+    .confirmation-dialog {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.5);
       display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
 
-    .hide-keyboard-area.active {
+    .confirmation-dialog.active {
+      display: flex;
+    }
+
+    .dialog-content {
+      background-color: var(--card-color);
+      width: calc(100% - 32px);
+      max-width: 300px;
+      padding: 18px;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    .dialog-content p {
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .dialog-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--card-color);
+      color: var(--text-color);
+      padding: 12px 24px;
+      border-radius: var(--border-radius);
+      display: none;
+      z-index: 1000;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .toast.active {
       display: block;
     }
 
-    .service-icon.netflix { background-color: #e50914; }
-    .service-icon.spotify { background-color: #1db954; }
-    .service-icon.youtube { background-color: #ff0000; }
-    .service-icon.apple { background-color: #000000; }
-    .service-icon.google { background-color: #4285f4; }
-    .service-icon.amazon { background-color: #ff9900; }
-    .service-icon.microsoft { background-color: #0078d7; }
-    .service-icon.telegram { background-color: #0088cc; }
-    .service-icon.other { background-color: rgba(255, 255, 255, 0.1); }
+    .car-info .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-item label {
+      font-size: 13px;
+      color: var(--hint-color);
+    }
+
+    .info-item span,
+    .info-item a {
+      font-size: 15px;
+      color: var(--text-color);
+    }
+
+    .info-item a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    .info-item.full-width {
+      grid-column: span 1;
+    }
+
+    .description-text {
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .vin-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .copy-button {
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .edit-description-button {
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .description-edit {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: none;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      font-size: 15px;
+    }
+
+    .url-preview {
+      font-size: 12px;
+      color: var(--hint-color);
+      margin-top: 4px;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="top-spacer"></div>
-  <div class="hide-keyboard-area" id="hide-keyboard-area"></div>
-  
-  <div class="header">
-    <div class="header-title">Мои подписки</div>
-    <button class="add-btn" onclick="openAddModal()">+</button>
-  </div>
-
-  <div class="stats">
-    <div class="stats-row">
-      <div>
-        <div class="stat-label">Общие расходы в месяц</div>
-        <div class="stat-value" id="monthly-total">0 PLN</div>
+  <div class="app-container">
+    <div class="top-panel">
+      <a href="#" class="back-button" onclick="tg.close()">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <div class="control-buttons">
+        <button class="add-car-button">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
-      <div class="stat-count" id="subscriptions-count">0 подписок</div>
+    </div>
+
+    <h1 class="main-title">Мои авто</h1>
+
+    <div class="car-list" id="carList">
+      <div class="empty-state">Нажмите + чтобы добавить автомобиль</div>
     </div>
   </div>
 
-  <div class="subscriptions-list" id="subscriptions-list">
-    <div class="empty-state">Нажмите + чтобы добавить подписку</div>
-  </div>
-
-  <div class="scroll-spacer"></div>
-
-  <div class="footer">
-    <a href="https://t.me/clownades" class="author-link">@clownades</a>
-    <span class="storage-usage">0% 0б/4096б</span>
-  </div>
-
-  <div class="modal-overlay" id="edit-modal">
+  <div class="modal" id="addCarModal">
     <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title" id="modal-title">Новая подписка</div>
-        <button class="close-btn" onclick="closeEditModal()">×</button>
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="edit-service">Сервис</label>
-        <input type="text" id="edit-service" class="form-input" placeholder="Например, PornHub" oninput="updateServiceIcon()">
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="edit-price">Стоимость (PLN)</label>
-        <input type="number" id="edit-price" class="form-input" placeholder="0.00">
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="edit-date">Дата списания</label>
-        <input type="date" id="edit-date" class="form-input">
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="edit-period">Период</label>
-        <select id="edit-period" class="form-input">
-          <option value="monthly">Ежемесячно</option>
-          <option value="yearly">Ежегодно</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="edit-card">Метод оплаты / заметка</label>
-        <input type="text" id="edit-card" class="form-input" placeholder="Например Revolut,IKO,TON Crypto">
-      </div>
-      <button class="submit-btn" onclick="saveSubscription()">Сохранить</button>
-      <input type="hidden" id="edit-id">
+      <h2>Добавить автомобиль</h2>
+      <form id="addCarForm">
+        <div class="form-group">
+          <label for="carName">Название машины*</label>
+          <input type="text" id="carName" required>
+        </div>
+        <div class="form-group">
+          <label for="mileage">Актуальный пробег (км)*</label>
+          <input type="number" id="mileage" required>
+        </div>
+        <div class="form-group">
+          <label for="vin">VIN*</label>
+          <input type="text" id="vin" required>
+        </div>
+        <div class="form-group">
+          <label for="plate">Номер машины*</label>
+          <input type="text" id="plate" required>
+        </div>
+        <div class="form-group">
+          <label for="purchaseDate">Дата покупки*</label>
+          <input type="date" id="purchaseDate" required>
+        </div>
+        <div class="form-group">
+          <label for="lastOilChange">Пробег на последней замене масла (км)*</label>
+          <input type="number" id="lastOilChange" required>
+        </div>
+        <div class="form-group">
+          <label for="lastTimingBelt">Пробег на последней замене ГРМ (км)*</label>
+          <input type="number" id="lastTimingBelt" required>
+        </div>
+        <div class="form-group">
+          <label for="insuranceEnd">Дата окончания страховки*</label>
+          <input type="date" id="insuranceEnd" required>
+        </div>
+        <div class="form-group">
+          <label for="maintenanceEnd">Дата окончания ТО*</label>
+          <input type="date" id="maintenanceEnd" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Описание</label>
+          <textarea id="description" rows="4" placeholder="Добавьте любую дополнительную информацию"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="link1">Ссылка 1</label>
+          <input type="url" id="link1">
+          <div id="link1Preview" class="url-preview"></div>
+        </div>
+        <div class="form-group">
+          <label for="link2">Ссылка 2</label>
+          <input type="url" id="link2">
+          <div id="link2Preview" class="url-preview"></div>
+        </div>
+        <div class="form-group">
+          <label for="link3">Ссылка 3</label>
+          <input type="url" id="link3">
+          <div id="link3Preview" class="url-preview"></div>
+        </div>
+        <div class="form-group">
+          <label for="link4">Ссылка 4</label>
+          <input type="url" id="link4">
+          <div id="link4Preview" class="url-preview"></div>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit" class="save-button">Сохранить</button>
+          <button type="button" class="cancel-button">Отмена</button>
+        </div>
+      </form>
     </div>
   </div>
+
+  <div class="modal" id="viewCarModal">
+    <div class="modal-content">
+      <h2>Информация об автомобиле</h2>
+      <div class="car-info"></div>
+      <div class="modal-buttons">
+        <button class="edit-button">Редактировать</button>
+        <button class="delete-button">Удалить</button>
+        <button class="close-button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirmation-dialog" id="confirmationDialog">
+    <div class="dialog-content">
+      <p>Вы уверены, что хотите удалить этот автомобиль?</p>
+      <div class="dialog-buttons">
+        <button class="confirm-button">Удалить</button>
+        <button class="cancel-button">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 
   <script>
     const tg = window.Telegram.WebApp;
@@ -500,376 +527,460 @@
     tg.enableClosingConfirmation();
     tg.BackButton.hide();
 
-    let currentSwipedItem = null;
-    let startX = 0;
-    let currentX = 0;
-    let isSwiping = false;
-    let isEditMode = false;
+    const STORAGE_KEY = 'clownadescarskey';
+    const OIL_CHANGE_INTERVAL = 10000;
+    const WARNING_DAYS = 7;
 
-    const serviceIcons = {
-      'netflix': 'N',
-      'spotify': 'S',
-      'youtube': 'YT',
-      'apple': 'A',
-      'google': 'G',
-      'amazon': 'AZ',
-      'microsoft': 'MS',
-      'telegram': 'TG'
-    };
+    const carList = document.getElementById('carList');
+    const addCarModal = document.getElementById('addCarModal');
+    const viewCarModal = document.getElementById('viewCarModal');
+    const confirmationDialog = document.getElementById('confirmationDialog');
+    const toast = document.getElementById('toast');
+    const addCarForm = document.getElementById('addCarForm');
 
-    loadSubscriptions();
+    let cars = [];
+    let currentCarIndex = -1;
 
-    const hideKeyboardArea = document.getElementById('hide-keyboard-area');
-    document.addEventListener('focusin', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        hideKeyboardArea.classList.add('active');
-      }
-    });
-    
-    hideKeyboardArea.addEventListener('touchstart', () => {
-      document.activeElement.blur();
-      hideKeyboardArea.classList.remove('active');
-    });
+    loadCars();
 
-    function openAddModal() {
-      isEditMode = false;
-      document.getElementById('modal-title').textContent = 'Новая подписка';
-      document.getElementById('edit-id').value = '';
-      document.getElementById('edit-service').value = '';
-      document.getElementById('edit-price').value = '';
-      document.getElementById('edit-card').value = '';
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('edit-date').value = today;
-      document.getElementById('edit-period').value = 'monthly';
-      
-      tg.HapticFeedback.impactOccurred('light');
-      document.getElementById('edit-modal').classList.add('active');
-      tg.BackButton.show();
-      tg.onEvent('backButtonClicked', closeEditModal);
+    function setupEventListeners() {
+      document.querySelector('.add-car-button').addEventListener('click', () => {
+        tg.HapticFeedback.impactOccurred('light');
+        addCarModal.classList.add('active');
+        addCarForm.reset();
+      });
+
+      addCarForm.addEventListener('submit', handleAddCar);
+      addCarModal.querySelector('.cancel-button').addEventListener('click', () => {
+        tg.HapticFeedback.impactOccurred('light');
+        addCarModal.classList.remove('active');
+        addCarForm.reset();
+      });
+
+      viewCarModal.querySelector('.edit-button').addEventListener('click', handleEditCar);
+      viewCarModal.querySelector('.delete-button').addEventListener('click', showDeleteConfirmation);
+      viewCarModal.querySelector('.close-button').addEventListener('click', () => {
+        tg.HapticFeedback.impactOccurred('light');
+        viewCarModal.classList.remove('active');
+      });
+
+      confirmationDialog.querySelector('.confirm-button').addEventListener('click', handleDeleteCar);
+      confirmationDialog.querySelector('.cancel-button').addEventListener('click', () => {
+        tg.HapticFeedback.impactOccurred('light');
+        confirmationDialog.classList.remove('active');
+      });
+
+      window.addEventListener('click', (e) => {
+        if (e.target === addCarModal) {
+          tg.HapticFeedback.impactOccurred('light');
+          addCarModal.classList.remove('active');
+        }
+        if (e.target === viewCarModal) {
+          tg.HapticFeedback.impactOccurred('light');
+          viewCarModal.classList.remove('active');
+        }
+      });
+
+      document.getElementById('vin').addEventListener('input', function(e) {
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(start, end);
+      });
+
+      document.getElementById('plate').addEventListener('input', function(e) {
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(start, end);
+      });
+
+      ['link1', 'link2', 'link3', 'link4'].forEach(id => {
+        const input = document.getElementById(id);
+        const preview = document.getElementById(`${id}Preview`);
+        input.addEventListener('input', function() {
+          const formattedUrl = formatURL(this.value);
+          if (formattedUrl) {
+            preview.textContent = `Будет сохранено как: ${formattedUrl}`;
+            preview.style.display = 'block';
+          } else {
+            preview.style.display = 'none';
+          }
+        });
+      });
+
+      setInterval(() => {
+        renderCarList();
+      }, 60000);
     }
 
-    function openEditModal(subscription) {
-      isEditMode = true;
-      document.getElementById('modal-title').textContent = 'Редактировать подписку';
-      document.getElementById('edit-id').value = subscription.id;
-      document.getElementById('edit-service').value = subscription.service;
-      document.getElementById('edit-price').value = subscription.price;
-      document.getElementById('edit-date').value = subscription.date;
-      document.getElementById('edit-period').value = subscription.period;
-      document.getElementById('edit-card').value = subscription.card;
-      
-      tg.HapticFeedback.impactOccurred('light');
-      document.getElementById('edit-modal').classList.add('active');
-      tg.BackButton.show();
-      tg.onEvent('backButtonClicked', closeEditModal);
+    function loadCars() {
+      tg.CloudStorage.getItem(STORAGE_KEY, (err, data) => {
+        if (!err && data) {
+          try {
+            cars = JSON.parse(data).cars || [];
+          } catch (e) {
+            console.error('Error parsing cars:', e);
+            cars = [];
+          }
+        } else {
+          cars = [];
+        }
+        renderCarList();
+        setupEventListeners();
+      });
     }
 
-    function closeEditModal() {
-      document.getElementById('edit-modal').classList.remove('active');
-      tg.BackButton.hide();
-      tg.offEvent('backButtonClicked', closeEditModal);
+    function saveCars() {
+      tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
+        renderCarList();
+      });
     }
 
-    function updateServiceIcon() {
-    }
-
-    async function saveSubscription() {
-      const id = document.getElementById('edit-id').value;
-      const service = document.getElementById('edit-service').value.trim();
-      const price = parseFloat(document.getElementById('edit-price').value);
-      const date = document.getElementById('edit-date').value;
-      const period = document.getElementById('edit-period').value;
-      const card = document.getElementById('edit-card').value.trim();
-
-      if (!service || isNaN(price) || !date || !card) {
-        tg.HapticFeedback.notificationOccurred('error');
-        tg.showAlert('Заполните все поля!');
-        return;
-      }
-
+    function handleAddCar(e) {
+      e.preventDefault();
       tg.HapticFeedback.impactOccurred('medium');
 
-      const subscription = {
-        id: id || Date.now(),
-        service,
-        price,
-        date,
-        period,
-        card,
-        createdAt: new Date().toISOString()
+      const newCar = {
+        name: document.getElementById('carName').value,
+        mileage: parseInt(document.getElementById('mileage').value),
+        vin: document.getElementById('vin').value.toUpperCase(),
+        plate: document.getElementById('plate').value.toUpperCase(),
+        purchaseDate: document.getElementById('purchaseDate').value,
+        lastOilChangeMileage: parseInt(document.getElementById('lastOilChange').value),
+        lastTimingBeltMileage: parseInt(document.getElementById('lastTimingBelt').value),
+        insuranceEndDate: document.getElementById('insuranceEnd').value,
+        maintenanceEndDate: document.getElementById('maintenanceEnd').value,
+        description: document.getElementById('description').value || '',
+        link1: formatURL(document.getElementById('link1').value),
+        link2: formatURL(document.getElementById('link2').value),
+        link3: formatURL(document.getElementById('link3').value),
+        link4: formatURL(document.getElementById('link4').value)
       };
 
-      tg.CloudStorage.getItem('subscriptions', (err, data) => {
-        let subscriptions = err ? [] : JSON.parse(data || '[]');
-        
-        if (isEditMode) {
-          subscriptions = subscriptions.map(sub => 
-            sub.id.toString() === id.toString() ? subscription : sub
-          );
-        } else {
-          subscriptions.push(subscription);
-        }
-        
-        tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
-          renderSubscriptions(subscriptions);
-          closeEditModal();
-          updateStorageUsage();
+      tg.CloudStorage.getItem(STORAGE_KEY, (err, data) => {
+        cars = err || !data ? [] : JSON.parse(data).cars || [];
+        cars.push(newCar);
+        tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
+          renderCarList();
+          addCarModal.classList.remove('active');
+          addCarForm.reset();
+          showToast('Автомобиль добавлен');
         });
       });
     }
 
-    async function loadSubscriptions() {
-      tg.CloudStorage.getItem('subscriptions', (err, data) => {
-        if (err) return;
-        
-        let subscriptions = data ? JSON.parse(data) : [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        subscriptions = subscriptions.map(sub => {
-          const endDate = new Date(sub.date);
-          if (endDate < today) {
-            if (sub.period === 'monthly') {
-              endDate.setMonth(endDate.getMonth() + 1);
-            } else {
-              endDate.setFullYear(endDate.getFullYear() + 1);
-            }
-            return {
-              ...sub,
-              date: endDate.toISOString().split('T')[0]
-            };
-          }
-          return sub;
+    function handleEditCar() {
+      tg.HapticFeedback.impactOccurred('medium');
+      const carInfo = viewCarModal.querySelector('.car-info');
+      const car = cars[currentCarIndex];
+
+      if (carInfo.classList.contains('editing')) {
+        car.name = carInfo.querySelector('[data-field="name"]').value;
+        car.mileage = parseInt(carInfo.querySelector('[data-field="mileage"]').value);
+        car.vin = carInfo.querySelector('[data-field="vin"]').value.toUpperCase();
+        car.plate = carInfo.querySelector('[data-field="plate"]').value.toUpperCase();
+        car.purchaseDate = carInfo.querySelector('[data-field="purchaseDate"]').value;
+        car.lastOilChangeMileage = parseInt(carInfo.querySelector('[data-field="lastOilChangeMileage"]').value);
+        car.lastTimingBeltMileage = parseInt(carInfo.querySelector('[data-field="lastTimingBeltMileage"]').value);
+        car.insuranceEndDate = carInfo.querySelector('[data-field="insuranceEndDate"]').value;
+        car.maintenanceEndDate = carInfo.querySelector('[data-field="maintenanceEndDate"]').value;
+        car.description = carInfo.querySelector('[data-field="description"]').value;
+        car.link1 = formatURL(carInfo.querySelector('[data-field="link1"]').value);
+        car.link2 = formatURL(carInfo.querySelector('[data-field="link2"]').value);
+        car.link3 = formatURL(carInfo.querySelector('[data-field="link3"]').value);
+        car.link4 = formatURL(carInfo.querySelector('[data-field="link4"]').value);
+
+        tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
+          renderCarList();
+          showToast('Изменения сохранены');
+          carInfo.classList.remove('editing');
+          viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
+          renderCarInfo(car);
         });
-        
-        tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
-          renderSubscriptions(subscriptions);
-          updateStorageUsage();
-        });
+      } else {
+        carInfo.classList.add('editing');
+        viewCarModal.querySelector('.edit-button').textContent = 'Сохранить';
+        renderCarInfoEditable(car);
+      }
+    }
+
+    function handleDeleteCar() {
+      tg.HapticFeedback.notificationOccurred('success');
+      cars.splice(currentCarIndex, 1);
+      tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
+        renderCarList();
+        confirmationDialog.classList.remove('active');
+        viewCarModal.classList.remove('active');
+        showToast('Автомобиль удален');
       });
     }
 
-    function getServiceIconClass(serviceName) {
-      const lowerName = serviceName.toLowerCase();
-      for (const [key, value] of Object.entries(serviceIcons)) {
-        if (lowerName.includes(key)) {
-          return key;
-        }
-      }
-      return 'other';
-    }
-
-    function getServiceIconText(serviceName) {
-      const lowerName = serviceName.toLowerCase();
-      for (const [key, value] of Object.entries(serviceIcons)) {
-        if (lowerName.includes(key)) {
-          return value;
-        }
-      }
-      return serviceName.charAt(0).toUpperCase();
-    }
-
-    function renderSubscriptions(subscriptions) {
-      const list = document.getElementById('subscriptions-list');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (subscriptions.length === 0) {
-        list.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить подписку</div>';
-        document.getElementById('monthly-total').textContent = '0 PLN';
-        document.getElementById('subscriptions-count').textContent = '0 подписок';
+    function renderCarList() {
+      carList.innerHTML = '';
+      if (cars.length === 0) {
+        carList.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить автомобиль</div>';
         return;
       }
+      cars.forEach((car, index) => {
+        const carElement = createCarElement(car, index);
+        carList.appendChild(carElement);
+      });
+    }
 
-      list.innerHTML = '';
-      let monthlyTotal = 0;
+    function createCarElement(car, index) {
+      const div = document.createElement('div');
+      div.className = 'car-item';
+      div.innerHTML = `
+        <div class="car-name">${car.name}</div>
+        <div class="timer-container">
+          <div class="timer ${isDateWarning(car.insuranceEndDate) ? 'warning' : ''}">
+            <div class="timer-label">Страховка</div>
+            <div class="timer-value">${formatTimeRemaining(car.insuranceEndDate)}</div>
+          </div>
+          <div class="timer ${isDateWarning(car.maintenanceEndDate) ? 'warning' : ''}">
+            <div class="timer-label">ТО</div>
+            <div class="timer-value">${formatTimeRemaining(car.maintenanceEndDate)}</div>
+          </div>
+          <div class="timer">
+            <div class="timer-label">До замены масла</div>
+            <div class="timer-value">${formatMileageRemaining(car.mileage, car.lastOilChangeMileage)} км</div>
+          </div>
+        </div>
+      `;
+      div.addEventListener('click', () => showCarDetails(index));
+      return div;
+    }
 
-      subscriptions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      subscriptions.forEach(sub => {
-        const endDate = new Date(sub.date);
-        const timeDiff = endDate - today;
-        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-        
-        monthlyTotal += sub.price;
-
-        const container = document.createElement('div');
-        container.className = 'list-item-container';
-        container.dataset.id = sub.id;
-        
-        const swipeableContainer = document.createElement('div');
-        swipeableContainer.className = 'swipeable-container';
-        
-        const item = document.createElement('div');
-        item.className = 'subscription-item';
-        
-        let daysLeftClass = '';
-        if (daysLeft <= 3) {
-          daysLeftClass = 'danger';
-        } else if (daysLeft <= 7) {
-          daysLeftClass = 'warning';
-        } else if (daysLeft > 30) {
-          daysLeftClass = 'success';
-        }
-        
-        const serviceIconClass = getServiceIconClass(sub.service);
-        const serviceIconText = getServiceIconText(sub.service);
-        
-        item.innerHTML = `
-          <div class="subscription-name">
-            <div class="service-name-wrapper">
-              <div class="service-icon ${serviceIconClass}">${serviceIconText}</div>
-              <div class="service-name" title="${sub.service}">${sub.service}</div>
+    function renderCarInfo(car) {
+      const carInfo = viewCarModal.querySelector('.car-info');
+      carInfo.innerHTML = `
+        <h3>${car.name}</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>VIN:</label>
+            <div class="vin-container">
+              <span>${car.vin}</span>
+              <button class="copy-button" onclick="copyVIN('${car.vin}')">
+                <i class="fas fa-copy"></i>
+              </button>
             </div>
-            <div class="subscription-price">${sub.price} PLN</div>
           </div>
-          <div class="subscription-details">
-            <span class="detail-badge">${formatDate(sub.date)}</span>
-            <span class="detail-badge days-left ${daysLeftClass}">${daysLeft} дн.</span>
-            <span class="detail-badge">${sub.card}</span>
-            <span class="detail-badge">${getPeriodText(sub.period)}</span>
+          <div class="info-item">
+            <label>Номер:</label>
+            <span>${car.plate}</span>
           </div>
-        `;
-        
-        item.addEventListener('click', () => {
-          resetSwipedItem();
-          openEditModal(sub);
-        });
-        
-        const deleteAction = document.createElement('div');
-        deleteAction.className = 'delete-action';
-        deleteAction.textContent = 'Удалить';
-        deleteAction.onclick = (e) => {
-          e.stopPropagation();
-          confirmDelete(sub.id);
-        };
-        
-        swipeableContainer.appendChild(item);
-        swipeableContainer.appendChild(deleteAction);
-        container.appendChild(swipeableContainer);
-        list.appendChild(container);
-
-        setupSwipe(container, swipeableContainer, sub.id);
-      });
-
-      document.getElementById('monthly-total').textContent = `${monthlyTotal.toFixed(2)} PLN`;
-      document.getElementById('subscriptions-count').textContent = `${subscriptions.length} ${pluralize(subscriptions.length, ['подписка', 'подписки', 'подписок'])}`;
+          <div class="info-item">
+            <label>Пробег:</label>
+            <span>${car.mileage} км</span>
+          </div>
+          <div class="info-item">
+            <label>Дата покупки:</label>
+            <span>${formatDate(car.purchaseDate)}</span>
+          </div>
+          <div class="info-item">
+            <label>Последняя замена масла:</label>
+            <span>${car.lastOilChangeMileage} км</span>
+          </div>
+          <div class="info-item">
+            <label>Последняя замена ГРМ:</label>
+            <span>${car.lastTimingBeltMileage} км</span>
+          </div>
+          <div class="info-item">
+            <label>Страховка до:</label>
+            <span>${formatDate(car.insuranceEndDate)}</span>
+          </div>
+          <div class="info-item">
+            <label>ТО до:</label>
+            <span>${formatDate(car.maintenanceEndDate)}</span>
+          </div>
+          <div class="info-item full-width">
+            <label>Описание:</label>
+            <div class="description-text">${car.description || 'Нет описания'}</div>
+            <button class="edit-description-button" onclick="editDescription(${currentCarIndex})">
+              <i class="fas fa-edit"></i> Редактировать описание
+            </button>
+          </div>
+          ${renderLinks(car)}
+        </div>
+      `;
     }
 
-    function setupSwipe(container, swipeable, id) {
-      let startX, currentX, isDragging = false;
-      const threshold = 40;
-      const deleteWidth = 72;
-
-      container.addEventListener('touchstart', (e) => {
-        if (currentSwipedItem && currentSwipedItem !== container) {
-          resetSwipedItem();
-        }
-        
-        startX = e.touches[0].clientX;
-        currentX = startX;
-        isDragging = true;
-        tg.HapticFeedback.impactOccurred('light');
-      });
-
-      container.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        
-        currentX = e.touches[0].clientX;
-        const diff = startX - currentX;
-        
-        if (diff > 0) {
-          const translateX = Math.min(diff, deleteWidth);
-          swipeable.style.transform = `translateX(-${translateX}px)`;
-        }
-      });
-
-      container.addEventListener('touchend', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        
-        const diff = startX - currentX;
-        
-        if (diff > threshold) {
-          swipeable.style.transform = `translateX(-${deleteWidth}px)`;
-          currentSwipedItem = container;
-        } else {
-          swipeable.style.transform = 'translateX(0)';
-        }
-      });
+    function renderCarInfoEditable(car) {
+      const carInfo = viewCarModal.querySelector('.car-info');
+      carInfo.innerHTML = `
+        <div class="form-group">
+          <label>Название:</label>
+          <input type="text" data-field="name" value="${car.name}" required>
+        </div>
+        <div class="form-group">
+          <label>VIN:</label>
+          <input type="text" data-field="vin" value="${car.vin}" required>
+        </div>
+        <div class="form-group">
+          <label>Номер:</label>
+          <input type="text" data-field="plate" value="${car.plate}" required>
+        </div>
+        <div class="form-group">
+          <label>Пробег (км):</label>
+          <input type="number" data-field="mileage" value="${car.mileage}" required>
+        </div>
+        <div class="form-group">
+          <label>Дата покупки:</label>
+          <input type="date" data-field="purchaseDate" value="${car.purchaseDate}" required>
+        </div>
+        <div class="form-group">
+          <label>Пробег на последней замене масла (км):</label>
+          <input type="number" data-field="lastOilChangeMileage" value="${car.lastOilChangeMileage}" required>
+        </div>
+        <div class="form-group">
+          <label>Пробег на последней замене ГРМ (км):</label>
+          <input type="number" data-field="lastTimingBeltMileage" value="${car.lastTimingBeltMileage}" required>
+        </div>
+        <div class="form-group">
+          <label>Страховка до:</label>
+          <input type="date" data-field="insuranceEndDate" value="${car.insuranceEndDate}" required>
+        </div>
+        <div class="form-group">
+          <label>ТО до:</label>
+          <input type="date" data-field="maintenanceEndDate" value="${car.maintenanceEndDate}" required>
+        </div>
+        <div class="form-group">
+          <label>Описание:</label>
+          <textarea data-field="description" rows="4">${car.description || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Ссылка 1:</label>
+          <input type="url" data-field="link1" value="${car.link1 || ''}">
+        </div>
+        <div class="form-group">
+          <label>Ссылка 2:</label>
+          <input type="url" data-field="link2" value="${car.link2 || ''}">
+        </div>
+        <div class="form-group">
+          <label>Ссылка 3:</label>
+          <input type="url" data-field="link3" value="${car.link3 || ''}">
+        </div>
+        <div class="form-group">
+          <label>Ссылка 4:</label>
+          <input type="url" data-field="link4" value="${car.link4 || ''}">
+        </div>
+      `;
     }
 
-    function resetSwipedItem() {
-      if (currentSwipedItem) {
-        const swipeable = currentSwipedItem.querySelector('.swipeable-container');
-        swipeable.style.transform = 'translateX(0)';
-        currentSwipedItem = null;
-      }
+    function renderLinks(car) {
+      return ['link1', 'link2', 'link3', 'link4']
+        .map((link, index) => {
+          const url = car[link];
+          return url ? `
+            <div class="info-item">
+              <label>Ссылка ${index + 1}:</label>
+              <a href="${url}" target="_blank">${url}</a>
+            </div>
+          ` : `
+            <div class="info-item">
+              <label>Ссылка ${index + 1}:</label>
+              <span class="no-link">Нет ссылки</span>
+            </div>
+          `;
+        })
+        .join('');
     }
 
-    function confirmDelete(id) {
+    function showCarDetails(index) {
+      tg.HapticFeedback.impactOccurred('light');
+      currentCarIndex = index;
+      const car = cars[index];
+      renderCarInfo(car);
+      viewCarModal.classList.add('active');
+    }
+
+    function showDeleteConfirmation() {
       tg.HapticFeedback.impactOccurred('rigid');
-      
-      tg.showConfirm('Удалить эту подписку?', (confirmed) => {
-        if (!confirmed) {
-          resetSwipedItem();
-          return;
-        }
-        
-        tg.CloudStorage.getItem('subscriptions', (err, data) => {
-          if (err) return;
-          
-          const subscriptions = JSON.parse(data || '[]');
-          const updated = subscriptions.filter(sub => sub.id.toString() !== id.toString());
-          
-          tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
-            renderSubscriptions(updated);
-            tg.HapticFeedback.notificationOccurred('success');
-            updateStorageUsage();
-          });
-        });
+      confirmationDialog.classList.add('active');
+    }
+
+    function copyVIN(vin) {
+      tg.HapticFeedback.notificationOccurred('success');
+      navigator.clipboard.writeText(vin).then(() => {
+        showToast('VIN скопирован');
+      }).catch(err => {
+        console.error('Failed to copy VIN:', err);
+        showToast('Ошибка при копировании VIN');
       });
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('active');
+      setTimeout(() => {
+        toast.classList.remove('active');
+      }, 3000);
     }
 
     function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit'
+      return new Date(dateString).toLocaleDateString('ru-RU');
+    }
+
+    function formatTimeRemaining(dateString) {
+      const end = new Date(dateString);
+      const now = new Date();
+      const diff = end - now;
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return `${days} дн.`;
+    }
+
+    function formatMileageRemaining(currentMileage, lastChangeMileage) {
+      const remaining = OIL_CHANGE_INTERVAL - (currentMileage - lastChangeMileage);
+      return remaining > 0 ? remaining : 0;
+    }
+
+    function isDateWarning(dateString) {
+      const end = new Date(dateString);
+      const now = new Date();
+      const diff = end - now;
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return days <= WARNING_DAYS;
+    }
+
+    function editDescription(index) {
+      tg.HapticFeedback.impactOccurred('light');
+      const car = cars[index];
+      const description = car.description || '';
+      const textarea = document.createElement('textarea');
+      textarea.value = description;
+      textarea.rows = 4;
+      textarea.className = 'description-edit';
+      const descriptionDiv = viewCarModal.querySelector('.description-text');
+      const editButton = viewCarModal.querySelector('.edit-description-button');
+      descriptionDiv.replaceWith(textarea);
+      const saveButton = document.createElement('button');
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Сохранить';
+      saveButton.className = 'save-description-button';
+      saveButton.addEventListener('click', () => {
+        tg.HapticFeedback.impactOccurred('medium');
+        car.description = textarea.value;
+        tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
+          renderCarInfo(car);
+          showToast('Описание сохранено');
+        });
       });
+      editButton.replaceWith(saveButton);
     }
 
-    function getPeriodText(period) {
-      return period === 'monthly' ? 'Ежемес.' : 'Ежегод.';
-    }
-
-    function pluralize(number, titles) {
-      const cases = [2, 0, 1, 1, 1, 2];
-      return titles[
-        number % 100 > 4 && number % 100 < 20
-          ? 2
-          : cases[number % 10 < 5 ? number % 10 : 5]
-      ];
-    }
-
-    function updateStorageUsage() {
-      tg.CloudStorage.getItem('subscriptions', (err, data) => {
-        let usedBytes = 0;
-        if (!err && data) {
-          usedBytes = new TextEncoder().encode(data).length;
-        }
-        
-        const totalBytes = 4096;
-        const percentage = Math.round((usedBytes / totalBytes) * 100);
-        const storageText = `${percentage}% ${usedBytes}б/${totalBytes}б`;
-        
-        const footer = document.querySelector('.footer');
-        footer.innerHTML = `
-          <a href="https://t.me/clownades" class="author-link">@clownades</a>
-          <span class="storage-usage">${storageText}</span>
-        `;
-      });
+    function formatURL(url) {
+      if (!url) return '';
+      url = url.trim();
+      if (!url) return '';
+      url = url.replace(/^(https?:\/\/)/, '');
+      if (!url) return '';
+      const fullUrl = `https://${url}`;
+      try {
+        new URL(fullUrl);
+        return fullUrl;
+      } catch {
+        return '';
+      }
     }
   </script>
 </body>
