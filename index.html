@@ -33,7 +33,7 @@
       color: var(--text-color);
       padding: 12px;
       padding-top: 104px;
-      padding-bottom: 24px;
+      padding-bottom: 71px; /* Увеличено для футера (47px + 24px) */
       min-height: 100vh;
       overflow-x: hidden;
       touch-action: pan-y;
@@ -59,17 +59,9 @@
       z-index: 100;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end; /* Кнопка "+" выравнивается справа */
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       height: 52px;
-    }
-
-    .back-button {
-      color: var(--accent-color);
-      font-size: 20px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
     }
 
     .add-car-button {
@@ -306,7 +298,7 @@
 
     .toast {
       position: fixed;
-      bottom: 60px;
+      bottom: 120px; /* Сдвинуто выше из-за футера */
       left: 50%;
       transform: translateX(-50%);
       background-color: var(--card-color);
@@ -402,15 +394,47 @@
       margin-top: 4px;
       display: none;
     }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-color);
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--hint-color);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      height: 47px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .author-link {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .storage-usage {
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--hint-color);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div class="top-spacer"></div>
   <div class="app-container">
     <div class="top-panel">
-      <a href="#" class="back-button" onclick="tg.close()">
-        <i class="fas fa-chevron-left"></i>
-      </a>
       <div class="control-buttons">
         <button class="add-car-button">
           <i class="fas fa-plus"></i>
@@ -423,6 +447,11 @@
     <div class="car-list" id="carList">
       <div class="empty-state">Нажмите + чтобы добавить автомобиль</div>
     </div>
+  </div>
+
+  <div class="footer">
+    <a href="https://t.me/clownades" class="author-link">@clownades</a>
+    <span class="storage-usage">0% 0б/4096б</span>
   </div>
 
   <div class="modal" id="addCarModal">
@@ -627,6 +656,7 @@
           cars = [];
         }
         renderCarList();
+        updateStorageUsage();
         setupEventListeners();
       });
     }
@@ -634,6 +664,24 @@
     function saveCars() {
       tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
         renderCarList();
+        updateStorageUsage();
+      });
+    }
+
+    function updateStorageUsage() {
+      tg.CloudStorage.getItem(STORAGE_KEY, (err, data) => {
+        let usedBytes = 0;
+        if (!err && data) {
+          usedBytes = new TextEncoder().encode(data).length;
+        }
+        const totalBytes = 4096;
+        const percentage = Math.round((usedBytes / totalBytes) * 100);
+        const storageText = `${percentage}% ${usedBytes}б/${totalBytes}б`;
+        const footer = document.querySelector('.footer');
+        footer.innerHTML = `
+          <a href="https://t.me/clownades" class="author-link">@clownades</a>
+          <span class="storage-usage">${storageText}</span>
+        `;
       });
     }
 
@@ -666,6 +714,7 @@
           addCarModal.classList.remove('active');
           addCarForm.reset();
           showToast('Автомобиль добавлен');
+          updateStorageUsage();
         });
       });
     }
@@ -697,6 +746,7 @@
           carInfo.classList.remove('editing');
           viewCarModal.querySelector('.edit-button').textContent = 'Редактировать';
           renderCarInfo(car);
+          updateStorageUsage();
         });
       } else {
         carInfo.classList.add('editing');
@@ -713,6 +763,7 @@
         confirmationDialog.classList.remove('active');
         viewCarModal.classList.remove('active');
         showToast('Автомобиль удален');
+        updateStorageUsage();
       });
     }
 
@@ -963,6 +1014,7 @@
         tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify({ cars }), () => {
           renderCarInfo(car);
           showToast('Описание сохранено');
+          updateStorageUsage();
         });
       });
       editButton.replaceWith(saveButton);
