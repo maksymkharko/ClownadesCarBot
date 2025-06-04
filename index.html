@@ -31,16 +31,26 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 12px;
-      padding-top: 64px;
+      padding-top: 104px; /* Увеличено на 40px из-за top-spacer */
       padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
       touch-action: pan-y;
     }
 
-    .header {
+    .top-spacer {
+      height: 40px;
+      width: 100%;
+      background-color: transparent;
       position: fixed;
       top: 0;
+      left: 0;
+      z-index: 99;
+    }
+
+    .header {
+      position: fixed;
+      top: 40px; /* Сдвинут вниз на высоту top-spacer */
       left: 0;
       right: 0;
       padding: 12px 16px;
@@ -421,6 +431,7 @@
   </style>
 </head>
 <body>
+  <div class="top-spacer"></div>
   <div class="hide-keyboard-area" id="hide-keyboard-area"></div>
   
   <div class="header">
